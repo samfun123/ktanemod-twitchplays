@@ -51,6 +51,7 @@ public static class CommonReflectedTypeInfo
         IsSolvedField = BombComponentType.GetField("IsSolved", BindingFlags.Public | BindingFlags.Instance);
         OnPassField = BombComponentType.GetField("OnPass", BindingFlags.Public | BindingFlags.Instance);
         OnStrikeField = BombComponentType.GetField("OnStrike", BindingFlags.Public | BindingFlags.Instance);
+		HandlePassMethod = BombComponentType.GetMethod("HandlePass", BindingFlags.NonPublic | BindingFlags.Instance);
 
         TimerComponentType = ReflectionHelper.FindType("TimerComponent");
         TimeElapsedProperty = TimerComponentType.GetProperty("TimeElapsed", BindingFlags.Public | BindingFlags.Instance);
@@ -143,10 +144,16 @@ public static class CommonReflectedTypeInfo
         get;
         private set;
     }
-    #endregion
 
-    #region Timer Component
-    public static Type TimerComponentType
+	public static MethodInfo HandlePassMethod
+	{
+		get;
+		private set;
+	}
+	#endregion
+
+	#region Timer Component
+	public static Type TimerComponentType
     {
         get;
         private set;

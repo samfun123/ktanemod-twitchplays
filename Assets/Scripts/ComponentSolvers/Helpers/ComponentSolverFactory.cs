@@ -49,7 +49,6 @@ public static class ComponentSolverFactory
         //Kaneb Modules
         ModComponentSolverCreators["TwoBits"] = (bombCommander, bombComponent, ircConnection, canceller) => new TwoBitsComponentSolver(bombCommander, bombComponent, ircConnection, canceller);
 
-
         //Module Information
         //Information decleared here will be used to generate ModuleInformation.json if it doesn't already exist,  and will be overwritten by ModuleInformation.json if it does exist.
         /*
@@ -166,7 +165,7 @@ public static class ComponentSolverFactory
         ModComponetSolverInformation["graphModule"] = new ModuleInformation { helpText = "Submit an answer with !{0} submit green red true false. Order is TL, TR, BL, BR."}; // Connection Check
         ModComponetSolverInformation["CoordinatesModule"] = new ModuleInformation { helpText = "Cycle the options with !{0} cycle.  Submit your answer with !{0} submit <3,2>.  Partial answers are acceptable. To do chinese numbers, its !{0} submit chinese 12."};
         ModComponetSolverInformation["CreationModule"] = new ModuleInformation { helpText = "Combine two elements with !{0} combine water fire."};
-        ModComponetSolverInformation["DoubleOhModule"] = new ModuleInformation { helpText = "Cycle the buttons with !{0} cycle. (Cycle presses each button 3 times, in the order of vert1, horiz1, horiz2, vert2, submit.)  Submit your answer with !{0} press vert1 horiz1 horiz2 vert2 submit."};
+        ModComponetSolverInformation["DoubleOhModule"] = new ModuleInformation { helpText = "Cycle the buttons with !{0} cycle. (Cycle presses each button 3 times, in the order of vert1, horiz1, horiz2, vert2, submit.)  Submit your answer with !{0} press vert1 horiz1 horiz2 vert2 submit.", statusLightOverride = true, statusLightDown = false, statusLightLeft = false};
         ModComponetSolverInformation["EdgeworkModule"] = new ModuleInformation { helpText = ""};
         ModComponetSolverInformation["Emoji Math"] = new ModuleInformation { helpText = ""};
         ModComponetSolverInformation["EnglishTest"] = new ModuleInformation { helpText = ""};
@@ -187,7 +186,7 @@ public static class ComponentSolverFactory
         ModComponetSolverInformation["MazeV2"] = new ModuleInformation { helpText = ""};
         ModComponetSolverInformation["Microcontroller"] = new ModuleInformation { helpText = ""};
         ModComponetSolverInformation["MinesweeperModule"] = new ModuleInformation { helpText = "Clear the initial colour with !{0} dig blue. Clear the square on column 1 row 2 with !{0} dig 1 2. Flag the square on column 3 row 4 with !{0} flag 3 4. Separate multiple squares with a semicolon to interact with all of them."};
-        ModComponetSolverInformation["ModuleAgainstHumanity"] = new ModuleInformation { helpText = "Reset the module with !{0} press reset.  Move the black card +2 with !{0} move black 2.  Move the white card -3 with !{0} move white -3. Submit with !{0} press submit."};
+        ModComponetSolverInformation["ModuleAgainstHumanity"] = new ModuleInformation { helpText = "Reset the module with !{0} press reset.  Move the black card +2 with !{0} move black 2.  Move the white card -3 with !{0} move white -3. Submit with !{0} press submit.", statusLightOverride = true, statusLightDown = false, statusLightLeft = false};
         ModComponetSolverInformation["monsplodeFight"] = new ModuleInformation { helpText = "Use a move with !{0} use explode."};
         ModComponetSolverInformation["monsplodeWho"] = new ModuleInformation { helpText = ""};
         ModComponetSolverInformation["MorseV2"] = new ModuleInformation { helpText = ""};
