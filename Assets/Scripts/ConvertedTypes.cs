@@ -176,6 +176,13 @@ public static class CommonReflectedTypeInfo
         get;
         private set;
     }
+
+	public static MethodInfo GetFormattedStartTimeMethod
+    {
+        get;
+        private set;
+    }
+
     #endregion
 
     #region Result Page

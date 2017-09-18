@@ -10,6 +10,9 @@ public class ModuleInformation
     public string moduleDisplayName = string.Empty;
     public string moduleID;
 
+    public int moduleScore = 5;
+    public bool moduleScoreIsDynamic;
+
     public bool helpTextOverride;
     public string helpText;
 
