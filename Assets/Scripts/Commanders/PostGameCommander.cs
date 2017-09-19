@@ -36,7 +36,7 @@ public class PostGameCommander : ICommandResponder
         }
         else if (message.Equals("!retry", StringComparison.InvariantCultureIgnoreCase))
         {
-            button = RetryButton;
+            button = TwitchPlaySettings.data.EnableRewardMultipleStrikes ? RetryButton : ContinueButton;
         }
 
         if (button == null)
