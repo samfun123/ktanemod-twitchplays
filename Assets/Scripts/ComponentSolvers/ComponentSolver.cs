@@ -1,6 +1,8 @@
 ﻿using System;
-using System.Reflection;
 using System.Collections;
+using System.Linq;
+using System.IO;
+using System.Reflection;
 using System.Text.RegularExpressions;
 using UnityEngine;
 
@@ -58,7 +60,7 @@ public abstract class ComponentSolver : ICommandResponder
         }
         else
         {
-            subcoroutine = RespondToCommandCommon(message);
+            subcoroutine = RespondToCommandCommon(message, userNickName);
         }
 
         if (subcoroutine == null || !subcoroutine.MoveNext())
@@ -109,7 +111,7 @@ public abstract class ComponentSolver : ICommandResponder
                 }
                 else
 				{
-					IRCConnection.SendMessage(string.Format("Sorry @{0}, that command is invalid.", userNickName));
+					IRCConnection.SendMessage(string.Format(TwitchPlaySettings.data.InvalidCommand, userNickName));
 
 					responseNotifier.ProcessResponse(CommandResponse.NoResponse);
 				}
@@ -205,6 +207,7 @@ public abstract class ComponentSolver : ICommandResponder
                     if (int.TryParse(currentString.Substring(14), out awardStrikeCount))
                     {
                         _strikeCount += awardStrikeCount;
+                        int failsafe = 1;
                         AwardStrikes(_currentUserNickName, _currentResponseNotifier, awardStrikeCount);
                         DisableOnStrike = false;
                     }
@@ -226,7 +229,7 @@ public abstract class ComponentSolver : ICommandResponder
 
 		if (!_responded && !exceptionThrown)
 		{
-			IRCConnection.SendMessage(string.Format("Sorry @{0}, that command is invalid.", userNickName));
+			IRCConnection.SendMessage(string.Format(TwitchPlaySettings.data.InvalidCommand, userNickName));
 		}
 
         if (needQuaternionReset)
@@ -327,20 +330,48 @@ public abstract class ComponentSolver : ICommandResponder
     private bool OnPass(object _ignore)
     {
         string componentType = ComponentHandle.componentType.ToString();
-        if ( (componentType.Length > 4) && (componentType.Substring(0, 5).Equals("Needy")) )
+        string headerText = (string)CommonReflectedTypeInfo.ModuleDisplayNameField.Invoke(BombComponent, null);
+
+        int moduleScore = modInfo.moduleScore;
+        if (modInfo.moduleScoreIsDynamic)
         {
-            return false;
+            switch (modInfo.moduleScore)
+            {
+                case 0:
+                    moduleScore = (BombCommander.bombSolvableModules) / 2;
+                    break;
+                default:
+                    moduleScore = 5;
+                    break;
+            }
         }
+
+        switch (modInfo.moduleID)
+        {
+            case "NeedyVentComponentSolver":
+            case "NeedyKnobComponentSolver":
+            case "NeedyDischargeComponentSolver":
+                return false;
+            default:
+                if (BombComponent.GetComponent<KMNeedyModule>() != null)
+                {
+                    return false;
+                }
+                break;
+        }
+
+        
 
         if (_delegatedSolveUserNickName != null && _delegatedSolveResponseNotifier != null)
         {
-            AwardSolve(_delegatedSolveUserNickName, _delegatedSolveResponseNotifier);
+
+            AwardSolve(_delegatedSolveUserNickName, _delegatedSolveResponseNotifier, moduleScore);
             _delegatedSolveUserNickName = null;
             _delegatedSolveResponseNotifier = null;
         }
         else if (_currentUserNickName != null && _currentResponseNotifier != null)
         {
-            AwardSolve(_currentUserNickName, _currentResponseNotifier);
+            AwardSolve(_currentUserNickName, _currentResponseNotifier, moduleScore);
         }
 
         BombCommander.bombSolvedModules++;
@@ -384,9 +415,11 @@ public abstract class ComponentSolver : ICommandResponder
     private bool DisableOnStrike;
     private bool OnStrike(object _ignore)
     {
+        string headerText = (string)CommonReflectedTypeInfo.ModuleDisplayNameField.Invoke(BombComponent, null);
         if (DisableOnStrike) return false;
 
         _strikeCount++;
+
 
         if (_delegatedStrikeUserNickName != null && _delegatedStrikeResponseNotifier != null)
         {
@@ -404,15 +437,38 @@ public abstract class ComponentSolver : ICommandResponder
         return false;
     }
 
-    private void AwardSolve(string userNickName, ICommandResponseNotifier responseNotifier)
+    public bool OnStrikes(object _ignore)
     {
-        IRCConnection.SendMessage(string.Format("VoteYea Module {0} is solved! +1 solve to {1}", Code, userNickName));
-        responseNotifier.ProcessResponse(CommandResponse.EndComplete);
+        _strikeCount++;
+        BombMessageResponder.moduleCameras.UpdateStrikes(true);
+        return false;
+
+    }
+
+    private void AwardSolve(string userNickName, ICommandResponseNotifier responseNotifier, int ComponentValue)
+    {
+        string headerText = (string)CommonReflectedTypeInfo.ModuleDisplayNameField.Invoke(BombComponent, null);
+        IRCConnection.SendMessage(string.Format(TwitchPlaySettings.data.AwardSolve, Code, userNickName, ComponentValue, headerText));
+        string RecordMessageTone = "Module ID: " + Code + " | Player: " + userNickName + " | Module Name: " + headerText + " | Value: " + ComponentValue;
+        responseNotifier.ProcessResponse(CommandResponse.EndComplete, ComponentValue);
+        TwitchPlaySettings.AppendToSolveStrikeLog(RecordMessageTone);
+        TwitchPlaySettings.AppendToPlayerLog(userNickName);
     }
 
     private void AwardStrikes(string userNickName, ICommandResponseNotifier responseNotifier, int strikeCount)
     {
-        IRCConnection.SendMessage(string.Format("VoteNay Module {0} got {1} strike{2}! +{3} strike{2} to {4}{5}", Code, strikeCount == 1 ? "a" : strikeCount.ToString(), strikeCount == 1 ? "" : "s", strikeCount, userNickName, string.IsNullOrEmpty(StrikeMessage) ? "" : " caused by " + StrikeMessage));
+        string headerText = (string)CommonReflectedTypeInfo.ModuleDisplayNameField.Invoke(BombComponent, null);
+        int strikePenalty = -6 * (TwitchPlaySettings.data.EnableRewardMultipleStrikes ? strikeCount : 1);
+        IRCConnection.SendMessage(string.Format(TwitchPlaySettings.data.AwardStrike, Code, strikeCount == 1 ? "a" : strikeCount.ToString(), strikeCount == 1 ? "" : "s", 0, userNickName, string.IsNullOrEmpty(StrikeMessage) ? "" : " caused by " + StrikeMessage, headerText, strikePenalty));
+        string RecordMessageTone = "Module ID: " + Code + " | Player: " + userNickName + " | Module Name: " + headerText + " | Strike";
+        for (int i = 0; i < strikeCount; i++)
+        {
+            TwitchPlaySettings.AppendToSolveStrikeLog(RecordMessageTone);
+            if (!TwitchPlaySettings.data.EnableRewardMultipleStrikes)
+            {
+                break;
+            }
+        }
         responseNotifier.ProcessResponse(CommandResponse.EndError, strikeCount);
         StrikeMessage = string.Empty;
     }
@@ -499,7 +555,7 @@ public abstract class ComponentSolver : ICommandResponder
     #endregion
 
     #region Private Methods
-    private IEnumerator RespondToCommandCommon(string inputCommand)
+    private IEnumerator RespondToCommandCommon(string inputCommand, string userNickName)
     {
         if (inputCommand.Equals("unview", StringComparison.InvariantCultureIgnoreCase))
         {
@@ -511,11 +567,14 @@ public abstract class ComponentSolver : ICommandResponder
         {
             if (inputCommand.StartsWith("view", StringComparison.InvariantCultureIgnoreCase))
             {
-                cameraPriority = (inputCommand.Equals("view pin", StringComparison.InvariantCultureIgnoreCase)) ? ModuleCameras.CameraPinned : ModuleCameras.CameraPrioritised;
+                _responded = true;
+                bool pinAllowed = inputCommand.Equals("view pin", StringComparison.InvariantCultureIgnoreCase) &&
+                                  (UserAccess.HasAccess(userNickName, AccessLevel.Mod) || modInfo.CameraPinningAlwaysAllowed);
+
+                cameraPriority = (pinAllowed) ? ModuleCameras.CameraPinned : ModuleCameras.CameraPrioritised;
             }
             if ( (BombCommander.multiDecker) || (cameraPriority > ModuleCameras.CameraNotInUse) )
             {
-                _responded = true;
                 BombMessageResponder.moduleCameras.AttachToModule(BombComponent, ComponentHandle, Math.Max(cameraPriority, ModuleCameras.CameraInUse));
             }
         }
