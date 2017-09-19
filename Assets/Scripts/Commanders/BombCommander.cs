@@ -223,7 +223,7 @@ public class BombCommander : ICommandResponder
             {
                 yield return firstEdge.Current;
             }
-            yield return new WaitForSeconds(2.0f);
+            yield return new WaitForSeconds(4.0f);
         }
 
         if ((edge == "" && _45Degrees) || edge == "bottom right" || edge == "right bottom")
@@ -235,7 +235,7 @@ public class BombCommander : ICommandResponder
             {
                 yield return firstSecondEdge.Current;
             }
-            yield return new WaitForSeconds(2.0f);
+            yield return new WaitForSeconds(0.5f);
         }
 
         if (edge == "" || edge == "bottom")
@@ -248,7 +248,7 @@ public class BombCommander : ICommandResponder
             {
                 yield return secondEdge.Current;
             }
-            yield return new WaitForSeconds(2.0f);
+            yield return new WaitForSeconds(4.0f);
         }
 
         if ((edge == "" && _45Degrees) || edge == "bottom left" || edge == "left bottom")
@@ -260,7 +260,7 @@ public class BombCommander : ICommandResponder
             {
                 yield return secondThirdEdge.Current;
             }
-            yield return new WaitForSeconds(2.0f);
+            yield return new WaitForSeconds(0.5f);
         }
 
         if (edge == "" || edge == "left")
@@ -272,7 +272,7 @@ public class BombCommander : ICommandResponder
             {
                 yield return thirdEdge.Current;
             }
-            yield return new WaitForSeconds(2.0f);
+            yield return new WaitForSeconds(4.0f);
         }
 
         if ((edge == "" && _45Degrees) || edge == "top left" || edge == "left top")
@@ -284,7 +284,7 @@ public class BombCommander : ICommandResponder
             {
                 yield return thirdFourthEdge.Current;
             }
-            yield return new WaitForSeconds(2.0f);
+            yield return new WaitForSeconds(0.5f);
         }
 
         if (edge == "" || edge == "top")
@@ -296,7 +296,7 @@ public class BombCommander : ICommandResponder
             {
                 yield return fourthEdge.Current;
             }
-            yield return new WaitForSeconds(2.0f);
+            yield return new WaitForSeconds(4.0f);
         }
 
         if ((edge == "" && _45Degrees) || edge == "top right" || edge == "right top")
@@ -308,7 +308,7 @@ public class BombCommander : ICommandResponder
             {
                 yield return fourthFirstEdge.Current;
             }
-            yield return new WaitForSeconds(2.0f);
+            yield return new WaitForSeconds(0.5f);
         }
 
         switch (edge)
@@ -388,6 +388,11 @@ public class BombCommander : ICommandResponder
         {
             CauseStrike(reason);
         }
+    }
+
+    public void CauseInstantStrike(string reason)
+    {
+        CauseStrike(reason);
     }
 
     public void CauseStrike(string reason)
@@ -496,6 +501,14 @@ public class BombCommander : ICommandResponder
         }
     }
 
+    public string StartingTimerFormatted
+    {
+        get
+        {
+            return (string)CommonReflectedTypeInfo.GetFormattedTimeMethod.Invoke(null, new object[] { bombStartingTimer, true });
+        }
+    }
+
     public string GetFullFormattedTime
     {
         get
@@ -509,7 +522,21 @@ public class BombCommander : ICommandResponder
             return formattedTime;
         }
     }
-
+	
+    public string GetFullStartingTime
+    {
+        get
+        {
+            string formattedTime = StartingTimerFormatted;
+            if (bombStartingTimer >= 3600.0f)
+            {
+                int hours = (int)(bombStartingTimer / 3600);
+               formattedTime = hours + ":" + formattedTime;
+            }
+            return formattedTime;
+        }
+    }
+	
     public int StrikeCount
     {
         get
@@ -523,6 +550,14 @@ public class BombCommander : ICommandResponder
         get
         {
             return (int)CommonReflectedTypeInfo.NumStrikesToLoseField.GetValue(Bomb);
+        }
+    }
+
+    public int NumberModules
+    {
+        get
+        {
+            return bombSolvableModules;
         }
     }
 
