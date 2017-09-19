@@ -264,6 +264,21 @@ public class BombMessageResponder : MessageResponder
                 string internalCommand = match.Groups[1].Value;
                 text = string.Format("!bomb{0} {1}", _currentBomb + 1, internalCommand);
             }
+
+            match = Regex.Match(text, "^!edgework$");
+            if (match.Success)
+            {
+                text = string.Format("!edgework{0}", _currentBomb + 1);
+            }
+            else
+            {
+                match = Regex.Match(text, "^!edgework (.+)");
+                if (match.Success)
+                {
+                    string internalCommand = match.Groups[1].Value;
+                    text = string.Format("!edgework{0} {1}", _currentBomb + 1, internalCommand);
+                }
+            }
         }
 
         foreach (TwitchBombHandle handle in _bombHandles)
@@ -278,7 +293,10 @@ public class BombMessageResponder : MessageResponder
 
                 if (_currentBomb != handle.bombID)
                 {
+                    _coroutineQueue.AddToQueue(_bombHandles[_currentBomb].HideMainUIWindow(), handle.bombID);
+                    _coroutineQueue.AddToQueue(handle.ShowMainUIWindow(), handle.bombID);
                     _coroutineQueue.AddToQueue(_bombCommanders[_currentBomb].LetGoBomb(), handle.bombID);
+
                     _currentBomb = handle.bombID;
                 }
                 _coroutineQueue.AddToQueue(onMessageReceived, handle.bombID);
@@ -292,6 +310,8 @@ public class BombMessageResponder : MessageResponder
             {
                 if (_currentBomb != componentHandle.bombID)
                 {
+                    _coroutineQueue.AddToQueue(_bombHandles[_currentBomb].HideMainUIWindow(), componentHandle.bombID);
+                    _coroutineQueue.AddToQueue(_bombHandles[componentHandle.bombID].ShowMainUIWindow(), componentHandle.bombID);
                     _coroutineQueue.AddToQueue(_bombCommanders[_currentBomb].LetGoBomb(),componentHandle.bombID);
                     _currentBomb = componentHandle.bombID;
                 }
