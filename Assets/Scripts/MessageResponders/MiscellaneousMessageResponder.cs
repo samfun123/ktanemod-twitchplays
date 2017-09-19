@@ -143,5 +143,23 @@ public class MiscellaneousMessageResponder : MessageResponder
                 _ircConnection.SendMessage("Data reloaded");
             }
         }
+        else if (text.Equals("!enabletwitchplays", StringComparison.InvariantCultureIgnoreCase))
+        {
+            if (UserAccess.HasAccess(userNickName, AccessLevel.SuperUser))
+            {
+                _ircConnection.SendMessage("Twitch Plays Enabled");
+                TwitchPlaySettings.data.EnableTwitchPlaysMode = true;
+                TwitchPlaySettings.WriteDataToFile();
+            }
+        }
+        else if (text.Equals("!disabletwitchplays", StringComparison.InvariantCultureIgnoreCase))
+        {
+            if (UserAccess.HasAccess(userNickName, AccessLevel.SuperUser))
+            {
+                _ircConnection.SendMessage("Twitch Plays Disabled");
+                TwitchPlaySettings.data.EnableTwitchPlaysMode = false;
+                TwitchPlaySettings.WriteDataToFile();
+            }
+        }
     }
 }

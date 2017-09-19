@@ -50,7 +50,7 @@ public class BombMessageResponder : MessageResponder
     #region Unity Lifecycle
     private void OnEnable()
     {
-        if (!TwitchPlaysService.DebugMode)
+        if (!TwitchPlaysService.DebugMode && TwitchPlaySettings.data.EnableTwitchPlaysMode)
         {
             InputInterceptor.DisableInput();
         }
@@ -257,6 +257,11 @@ public class BombMessageResponder : MessageResponder
 
     protected override void OnMessageReceived(string userNickName, string userColorCode, string text)
     {
+        if (!TwitchPlaySettings.data.EnableTwitchPlaysMode && !UserAccess.HasAccess(userNickName, AccessLevel.SuperUser))
+        {
+            return;
+        }
+
         if (text.Equals("!stop", StringComparison.InvariantCultureIgnoreCase))
         {
             _currentBomb = _coroutineQueue.CurrentBombID;

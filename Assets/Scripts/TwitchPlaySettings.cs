@@ -16,6 +16,7 @@ public class TwitchPlaySettingsData
     public bool EnableSoloPlayMode = true;
     public bool ForceMultiDeckerMode = false;
     public bool EnableRetryButton = true;
+    public bool EnableTwitchPlaysMode = true;
     public int BombLiveMessageDelay = 0;
 
     public string TPSharedFolder = Path.Combine(Application.persistentDataPath, "TwitchPlaysShared");
@@ -49,7 +50,7 @@ public class TwitchPlaySettingsData
 
 public static class TwitchPlaySettings
 {
-    public static int SettingsVersion = 1;
+    public static int SettingsVersion = 2;
     public static TwitchPlaySettingsData data;
 
     public static void WriteDataToFile()
