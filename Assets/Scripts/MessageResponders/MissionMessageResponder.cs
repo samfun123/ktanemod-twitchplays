@@ -68,13 +68,19 @@ public class MissionMessageResponder : MessageResponder
         Match binderMatch = Regex.Match(text, "^!binder (.+)", RegexOptions.IgnoreCase);
         if (binderMatch.Success)
         {
-            _coroutineQueue.AddToQueue(_bombBinderCommander.RespondToCommand(userNickName, binderMatch.Groups[1].Value, null));
+            if (TwitchPlaySettings.data.EnableMissionBinder || UserAccess.HasAccess(userNickName, AccessLevel.Admin))
+            {
+                _coroutineQueue.AddToQueue(_bombBinderCommander.RespondToCommand(userNickName, binderMatch.Groups[1].Value, null));
+            }
         }
 
         Match freeplayMatch = Regex.Match(text, "^!freeplay (.+)", RegexOptions.IgnoreCase);
         if (freeplayMatch.Success)
         {
-            _coroutineQueue.AddToQueue(_freeplayCommander.RespondToCommand(userNickName, freeplayMatch.Groups[1].Value, null));
+            if (TwitchPlaySettings.data.EnableFreeplayBriefcase || UserAccess.HasAccess(userNickName, AccessLevel.Admin))
+            {
+                _coroutineQueue.AddToQueue(_freeplayCommander.RespondToCommand(userNickName, freeplayMatch.Groups[1].Value, null));
+            }
         }
     }
     #endregion
