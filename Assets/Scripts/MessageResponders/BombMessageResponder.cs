@@ -95,13 +95,13 @@ public class BombMessageResponder : MessageResponder
 
         if (HasDetonated)
         {
-            bombMessage = string.Format("KAPOW KAPOW The bomb has exploded, with {0} remaining! KAPOW KAPOW", timeRemainingFormatted);
+            bombMessage = string.Format(TwitchPlaySettings.data.BombExplodedMessage, timeRemainingFormatted);
             leaderboard.BombsExploded+=_bombCommanders.Count;
             leaderboard.Success = false;
         }
         else
         {
-            bombMessage = string.Format("PraiseIt PraiseIt The bomb has been defused, with {0} remaining! PraiseIt PraiseIt", timeRemainingFormatted);
+            bombMessage = string.Format(TwitchPlaySettings.data.BombDefusedMessage, timeRemainingFormatted);
             leaderboard.BombsCleared+=_bombCommanders.Count;
             leaderboard.Success = true;
             if (leaderboard.CurrentSolvers.Count == 1)
@@ -117,14 +117,23 @@ public class BombMessageResponder : MessageResponder
                 if (leaderboard.CurrentSolvers[userName] == (Leaderboard.RequiredSoloSolves * _bombCommanders.Count))
                 {
                     leaderboard.AddSoloClear(userName, elapsedTime, out previousRecord);
-                    TimeSpan elapsedTimeSpan = TimeSpan.FromSeconds(elapsedTime);
-                    bombMessage = string.Format("PraiseIt PraiseIt {0} completed a solo defusal in {1}:{2:00}!", leaderboard.SoloSolver.UserName, (int)elapsedTimeSpan.TotalMinutes, elapsedTimeSpan.Seconds);
-                    if (elapsedTime < previousRecord)
+                    if (TwitchPlaySettings.data.EnableSoloPlayMode)
                     {
-                        TimeSpan previousTimeSpan = TimeSpan.FromSeconds(previousRecord);
-                        bombMessage += string.Format(" It's a new record! (Previous record: {0}:{1:00})", (int)previousTimeSpan.TotalMinutes, previousTimeSpan.Seconds);
+                        //Still record solo information, should the defuser be the only one to actually defuse a 11 * bomb-count bomb, but display normal leaderboards instead if
+                        //solo play is disabled.
+                        TimeSpan elapsedTimeSpan = TimeSpan.FromSeconds(elapsedTime);
+                        bombMessage = string.Format(TwitchPlaySettings.data.BombSoloDefusalMessage, leaderboard.SoloSolver.UserName, (int) elapsedTimeSpan.TotalMinutes, elapsedTimeSpan.Seconds);
+                        if (elapsedTime < previousRecord)
+                        {
+                            TimeSpan previousTimeSpan = TimeSpan.FromSeconds(previousRecord);
+                            bombMessage += string.Format(TwitchPlaySettings.data.BombSoloDefusalNewRecordMessage, (int) previousTimeSpan.TotalMinutes, previousTimeSpan.Seconds);
+                        }
+                        bombMessage += TwitchPlaySettings.data.BombSoloDefusalFooter;
                     }
-                    bombMessage += " PraiseIt PraiseIt";
+                    else
+                    {
+                        leaderboard.ClearSolo();
+                    }
                 }
                 else
                 {
@@ -231,13 +240,18 @@ public class BombMessageResponder : MessageResponder
         CreateBombHandleForBomb(bomb, id);
         CreateComponentHandlesForBomb(bomb);
 
+        if (TwitchPlaySettings.data.BombLiveMessageDelay > 0)
+        {
+            System.Threading.Thread.Sleep(TwitchPlaySettings.data.BombLiveMessageDelay * 1000);
+        }
+
         if (id == -1)
         {
-            _ircConnection.SendMessage("The next bomb is now live! Start sending your commands! MrDestructoid");
+            _ircConnection.SendMessage(TwitchPlaySettings.data.BombLiveMessage);
         }
         else if (id == 0)
         {
-            _ircConnection.SendMessage("The next set of bombs are now live! Start sending your commands! MrDestructoid");
+            _ircConnection.SendMessage(TwitchPlaySettings.data.MultiBombLiveMessage);
         }
     }
 
@@ -337,7 +351,7 @@ public class BombMessageResponder : MessageResponder
 
         IList bombComponents = (IList)CommonReflectedTypeInfo.BombComponentsField.GetValue(bomb);
 
-        if (bombComponents.Count > 12)
+        if (bombComponents.Count > 12 || TwitchPlaySettings.data.ForceMultiDeckerMode)
         {
             _bombCommanders[_bombCommanders.Count - 1].multiDecker = true;
         }
