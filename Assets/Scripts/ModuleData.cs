@@ -30,6 +30,8 @@ public class ModuleInformation
 
     public bool builtIntoTwitchPlays;
 
+    public bool CameraPinningAlwaysAllowed;
+
 
     public bool ShouldSerializebuiltIntoTwitchPlays(){return false;}
     public bool ShouldSerializevalidCommands(){return !builtIntoTwitchPlays;}
