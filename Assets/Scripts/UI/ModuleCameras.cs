@@ -183,8 +183,8 @@ public class ModuleCameras : MonoBehaviour
             cameras.Add( new ModuleCamera(instantiatedCamera, this) );
         }
         stacks[0] = pinnedModuleStack;
-        stacks[1] = claimedModuleStack;
-        stacks[2] = priorityModuleStack;
+        stacks[1] = priorityModuleStack;
+        stacks[2] = claimedModuleStack;
         stacks[3] = moduleStack;
     }
 
