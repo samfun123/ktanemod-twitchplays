@@ -39,6 +39,9 @@ public class TwitchComponentHandle : MonoBehaviour
     public Image rightArrowHighlight = null;
 
     public Color claimedBackgroundColour = new Color(255, 0, 0);
+    public Color solvedBackgroundColor = new Color(0,128,0);
+    public Color markedBackgroundColor = new Color(0, 0, 0);
+
 
     [HideInInspector]
     public IRCConnection ircConnection = null;
@@ -231,6 +234,17 @@ public class TwitchComponentHandle : MonoBehaviour
     }
     #endregion
 
+    public IEnumerator TakeModule(string userNickName, string targetModule)
+    {
+        yield return new WaitForSecondsRealtime(60.0f);
+        SetBannerColor(unclaimedBackgroundColor);
+        ircConnection.SendMessage(string.Format("/me {1} has released Module {0} ({2}).", targetModule, playerName, headerText.text));
+        playerName = null;
+        TakeInProgress = null;
+    }
+
+    public IEnumerator TakeInProgress = null;
+
     #region Message Interface
     public IEnumerator OnMessageReceived(string userNickName, string userColor, string text)
     {
@@ -243,17 +257,9 @@ public class TwitchComponentHandle : MonoBehaviour
         string targetModule = match.Groups[1].Value;
         string internalCommand = match.Groups[2].Value;
         
-        string messageOut = null;
-        if (internalCommand.Equals("help", StringComparison.InvariantCultureIgnoreCase)) {
-            if (string.IsNullOrEmpty(_solver.modInfo.helpText)) {
-                bool moddedModule = ( (componentType == ComponentTypeEnum.Mod) || (componentType == ComponentTypeEnum.NeedyMod) );
-                messageOut = "No help message for {1}! Try here: " + TwitchPlaysService.urlHelper.Reference(moddedModule);
-            }
-            else {
-                messageOut = string.Format("{0}: {1}", headerText.text, _solver.modInfo.helpText);
-            }
-        }
-        else if (internalCommand.StartsWith("manual", StringComparison.InvariantCultureIgnoreCase)) {
+    string messageOut = null;
+        if ((internalCommand.StartsWith("manual", StringComparison.InvariantCultureIgnoreCase)) || (internalCommand.Equals("help", StringComparison.InvariantCultureIgnoreCase)))
+        {
             string manualText = null;
             string manualType = "html";
             if ( (internalCommand.Length > 7) && (internalCommand.Substring(7) == "pdf") )
@@ -273,8 +279,10 @@ public class TwitchComponentHandle : MonoBehaviour
             }
             else
             {
-                messageOut = string.Format("{0}: {1}", headerText.text, TwitchPlaysService.urlHelper.ManualFor(manualText, manualType));
+                //messageOut = string.Format("{0}: {1}", headerText.text, TwitchPlaysService.urlHelper.ManualFor(manualText, manualType));
+                messageOut = string.Format("{0} : {1} : {2}", headerText.text, _solver.modInfo.helpText, TwitchPlaysService.urlHelper.ManualFor(manualText, manualType));
             }
+
         }
         else if (Regex.IsMatch(internalCommand, "^(bomb|queue) (turn( a?round)?|flip|spin)$", RegexOptions.IgnoreCase))
         {
@@ -283,12 +291,12 @@ public class TwitchComponentHandle : MonoBehaviour
                 _solver._turnQueued = true;
                 StartCoroutine(_solver.TurnBombOnSolve());
             }
-            messageOut = string.Format("Turning to the other side when Module {0} is solved", targetModule);
+            messageOut = string.Format("/me Turning to the other side when Module {0} ({1}) is solved", targetModule, headerText.text);
         }
         else if (Regex.IsMatch(internalCommand, "^cancel (bomb|queue) (turn( a?round)?|flip|spin)$", RegexOptions.IgnoreCase))
         {
             _solver._turnQueued = false;
-            messageOut = string.Format("Bomb turn on Module {0} solve cancelled", targetModule);
+            messageOut = string.Format("/me Bomb turn on Module {0} ({1}) solve cancelled", targetModule, headerText.text);
         }
         else if (internalCommand.Equals("claim", StringComparison.InvariantCultureIgnoreCase))
         {
@@ -296,25 +304,77 @@ public class TwitchComponentHandle : MonoBehaviour
             {
                 SetBannerColor(claimedBackgroundColour);
                 playerName = userNickName;
-                ircConnection.SendMessage(string.Format("Module {0} claimed by {1}", targetModule, playerName));
+                ircConnection.SendMessage(string.Format("/me {1} has claimed Module {0} ({2}).", targetModule, playerName, headerText.text));
             }
         }
         else if (internalCommand.Equals("unclaim", StringComparison.InvariantCultureIgnoreCase))
         {
-            if ((playerName != null) && (playerName == userNickName))
+            if (((playerName != null) && (playerName == userNickName)) || (UserAccess.HasAccess(userNickName, AccessLevel.Mod)))
             {
                 SetBannerColor(unclaimedBackgroundColor);
+                messageOut = string.Format("/me {1} has released Module {0} ({2}).", targetModule, playerName, headerText.text);
                 playerName = null;
-                messageOut = string.Format("Module {0} released by {1}", targetModule, userNickName);
             }
+        }
+        else if (internalCommand.Equals("solved", StringComparison.InvariantCultureIgnoreCase))
+        {
+            if (UserAccess.HasAccess(userNickName, AccessLevel.Mod))
+            {
+                SetBannerColor(solvedBackgroundColor);
+                playerName = null;
+                messageOut = string.Format("/me {1} says module {0} ({2}) is ready to be submitted", targetModule, userNickName, headerText.text);
+            }
+        }
+        else if (internalCommand.StartsWith("assign", StringComparison.InvariantCultureIgnoreCase))
+        {
+            if (UserAccess.HasAccess(userNickName, AccessLevel.Mod))
+            {
+                string newplayerName = internalCommand.Remove(0, 7).Trim();
+                playerName = newplayerName;
+                SetBannerColor(claimedBackgroundColour);
+                ircConnection.SendMessage(string.Format("/me Module {0} ({3}) assigned to {1} by {2}", targetModule, playerName, userNickName, headerText.text));
+            }
+        }
+        else if (internalCommand.Equals("take", StringComparison.InvariantCultureIgnoreCase))
+        {
+            if ((playerName != null) && (userNickName != playerName))
+            {
+                ircConnection.SendMessage(string.Format("/me {0}, {1} wishes to take Module {2} ({3}). It will be freed up in one minute unless you type !{2} mine.", playerName, userNickName, targetModule, headerText.text));
+                if (TakeInProgress == null)
+                {
+                    TakeInProgress = TakeModule(userNickName, targetModule);
+                    StartCoroutine(TakeInProgress);
+                }
+            }
+        }
+        else if (internalCommand.Equals("mine", StringComparison.InvariantCultureIgnoreCase))
+        {
+            if (playerName == userNickName)
+            {
+                ircConnection.SendMessage(string.Format("/me {0} confirms he/she is still working on {1} ({2})", playerName, targetModule, headerText.text));
+                if (TakeInProgress != null)
+                {
+                    StopCoroutine(TakeInProgress);
+                    TakeInProgress = null;
+                }
+            }
+        }
+        else if (internalCommand.Equals("mark", StringComparison.InvariantCultureIgnoreCase))
+        {
+            if (UserAccess.HasAccess(userNickName, AccessLevel.Mod))
+            {
+                SetBannerColor(markedBackgroundColor);
+            }
+
         }
         else if (internalCommand.Equals("player", StringComparison.InvariantCultureIgnoreCase))
         {
             if (playerName != null)
             {
-                messageOut = string.Format("Module {0} was claimed by {1}", targetModule, playerName);
+                messageOut = string.Format("/me Module {0} ({2}) was claimed by {1}", targetModule, playerName, headerText.text);
             }
         }
+
         if (!string.IsNullOrEmpty(messageOut))
         {
             ircConnection.SendMessage(string.Format(messageOut, _code, headerText.text));
@@ -338,9 +398,23 @@ public class TwitchComponentHandle : MonoBehaviour
             }
         }
 
-        return _solver != null
-            ? RespondToCommandCoroutine(userNickName, internalCommand, message) 
-            : null;
+
+        if (_solver != null)
+        {
+            if ((bombCommander.CurrentTimer > 60.0f) && (playerName != null) && (playerName != userNickName) && (!(internalCommand.Equals("take", StringComparison.InvariantCultureIgnoreCase))))
+            {
+                ircConnection.SendMessage(string.Format("/me Sorry @{2}, Module {0} ({3}) is currently claimed by {1}.  If you think they have abandoned it, you may type !{0} take to free it up.", targetModule, playerName, userNickName, headerText.text));
+                return null;
+            }
+            else
+            {
+                return RespondToCommandCoroutine(userNickName, internalCommand, message);
+            }
+        }
+        else
+        {
+            return null;
+        }
     }
     #endregion
 
