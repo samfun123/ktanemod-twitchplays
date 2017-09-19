@@ -1,8 +1,14 @@
 ﻿using System;
+using System.IO;
+using UnityEngine;
 
 public class MiscellaneousMessageResponder : MessageResponder
 {
     public Leaderboard leaderboard = null;
+    public int moduleCountBonus = 0;
+
+    [HideInInspector]
+    public MonoBehaviour bombComponent = null;
 
     protected override void OnMessageReceived(string userNickName, string userColorCode, string text)
     {
@@ -17,16 +23,50 @@ public class MiscellaneousMessageResponder : MessageResponder
             _coroutineQueue.CancelFutureSubcoroutines();
             return;
         }
-        else if (text.Equals("!manual", StringComparison.InvariantCultureIgnoreCase))
+        else if (text.Equals("!manual", StringComparison.InvariantCultureIgnoreCase) ||
+                 text.Equals("!help", StringComparison.InvariantCultureIgnoreCase))
         {
             _ircConnection.SendMessage( string.Format("!{0} manual [link to module {0}'s manual] | Go to {1} to get the vanilla manual for KTaNE", UnityEngine.Random.Range(1, 100), TwitchPlaysService.urlHelper.VanillaManual) );
+            _ircConnection.SendMessage(string.Format("!{0} help [commands for module {0}] | Go to {1} to get the command reference for TP:KTaNE (multiple pages, see the menu on the right)", UnityEngine.Random.Range(1, 100), TwitchPlaysService.urlHelper.CommandReference));
             return;
         }
-        else if (text.Equals("!help", StringComparison.InvariantCultureIgnoreCase))
+        else if (text.StartsWith("!bonusscore", StringComparison.InvariantCultureIgnoreCase))
         {
-            _ircConnection.SendMessage( string.Format("!{0} help [commands for module {0}] | Go to {1} to get the command reference for TP:KTaNE (multiple pages, see the menu on the right)", UnityEngine.Random.Range(1, 100), TwitchPlaysService.urlHelper.CommandReference) );
+            string[] parts = text.Split(' ');
+            if (parts.Length < 3)
+            {
+                return;
+            }
+            string playerrewarded = parts[1];
+            int scorerewarded;
+            if (!int.TryParse(parts[2], out scorerewarded))
+            {
+                return;
+            }
+            if (UserAccess.HasAccess(userNickName, AccessLevel.SuperUser))
+            {
+                _ircConnection.SendMessage(string.Format("{0} awarded {1} points by {2}", parts[1], parts[2], userNickName));
+                Color usedColor = new Color(.31f, .31f, .31f);
+                leaderboard.AddScore(playerrewarded, usedColor, scorerewarded);
+            }
+            else
+            {
+                scorerewarded = Mathf.Abs(scorerewarded);
+                _ircConnection.SendMessage(string.Format("{0} lost {1} points", userNickName, parts[2]));
+                Color usedColor = new Color(.31f, .31f, .31f);
+                leaderboard.AddScore(playerrewarded, usedColor, scorerewarded);
+            }
             return;
         }
+        else if (text.StartsWith("!reward", StringComparison.InvariantCultureIgnoreCase))
+        {
+            if (UserAccess.HasAccess(userNickName, AccessLevel.SuperUser))
+            {
+                string[] parts = text.Split(' ');
+                moduleCountBonus = Int32.Parse(parts[1]);
+                TwitchPlaySettings.WriteRewardData(moduleCountBonus);
+            }
+        }        
         else if (text.StartsWith("!rank", StringComparison.InvariantCultureIgnoreCase))
         {
             Leaderboard.LeaderboardEntry entry = null;
@@ -48,7 +88,7 @@ public class MiscellaneousMessageResponder : MessageResponder
                 }
                 if (entry == null)
                 {
-                    _ircConnection.SendMessage("Nobody here with that rank!");
+                    _ircConnection.SendMessage(TwitchPlaySettings.data.RankTooLow);
                     return;
                 }
             }
@@ -63,14 +103,14 @@ public class MiscellaneousMessageResponder : MessageResponder
                 if (entry.TotalSoloClears > 0)
                 {
                     TimeSpan recordTimeSpan = TimeSpan.FromSeconds(entry.RecordSoloTime);
-                    txtSolver = "solver ";
-                    txtSolo = string.Format(", and #{0} solo with a best time of {1}:{2:00.0}", entry.SoloRank, (int)recordTimeSpan.TotalMinutes, recordTimeSpan.Seconds);
+                    txtSolver = TwitchPlaySettings.data.SolverAndSolo;
+                    txtSolo = string.Format(TwitchPlaySettings.data.SoloRankQuery, entry.SoloRank, (int)recordTimeSpan.TotalMinutes, recordTimeSpan.Seconds);
                 }
-                _ircConnection.SendMessage(string.Format("SeemsGood {0} is #{1} {4}with {2} solves and {3} strikes{5}", entry.UserName, entry.Rank, entry.SolveCount, entry.StrikeCount, txtSolver, txtSolo));
+                _ircConnection.SendMessage(string.Format(TwitchPlaySettings.data.RankQuery, entry.UserName, entry.Rank, entry.SolveCount, entry.StrikeCount, txtSolver, txtSolo));
             }
             else
             {
-                _ircConnection.SendMessage(string.Format("FailFish {0}, do you even play this game?", userNickName));
+                _ircConnection.SendMessage(string.Format(TwitchPlaySettings.data.DoYouEvenPlayBro, userNickName));
             }
             return;
         }
@@ -85,13 +125,23 @@ public class MiscellaneousMessageResponder : MessageResponder
         }
         else if (text.Equals("!about", StringComparison.InvariantCultureIgnoreCase))
         {
-            _ircConnection.SendMessage("Twitch Plays: KTaNE is an alternative way of playing !ktane. Unlike the original game, you play as both defuser and expert, and defuse the bomb by sending special commands to the chat room. Try !help for more information!");
+            _ircConnection.SendMessage("Twitch Plays: KTaNE is an alternative way of playing !ktane. Unlike the original game, you play as both defuser and expert, and defuse the bomb by sending special commands to the chat. Try !help for more information!");
             return;
         }
         else if (text.Equals("!ktane", StringComparison.InvariantCultureIgnoreCase))
         {
             _ircConnection.SendMessage("Keep Talking and Nobody Explodes is developed by Steel Crate Games. It's available for Windows PC, Mac OS X, PlayStation VR, Samsung Gear VR and Google Daydream. See http://www.keeptalkinggame.com/ for more information!");
             return;
+        }
+        else if (text.Equals("!reloaddata", StringComparison.InvariantCultureIgnoreCase))
+        {
+            if (UserAccess.HasAccess(userNickName, AccessLevel.SuperUser))
+            {
+                ModuleData.LoadDataFromFile();
+                TwitchPlaySettings.LoadDataFromFile();
+                UserAccess.LoadAccessList();
+                _ircConnection.SendMessage("Data reloaded");
+            }
         }
     }
 }
