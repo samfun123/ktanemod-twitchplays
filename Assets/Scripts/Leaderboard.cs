@@ -29,7 +29,7 @@ public class Leaderboard
         }
 
         public int StrikeCount
-        {
+		{
             get;
             set;
         }
@@ -74,19 +74,6 @@ public class Leaderboard
         {
             get;
             set;
-        }
-
-        public float SolveRate
-        {
-            get
-            {
-                if (StrikeCount == 0)
-                {
-                    return SolveCount;
-                }
-
-                return ((float)SolveCount) / StrikeCount;
-            }
         }
 
         public float TimePerSoloSolve
