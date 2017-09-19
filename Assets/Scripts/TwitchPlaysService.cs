@@ -14,11 +14,6 @@ public class TwitchPlaysService : MonoBehaviour
         public int serverPort;
         public bool debug = false;
         public bool shortUrls = false;
-        public bool EnableRewardMultipleStrikes = true;
-        public bool EnableScoreMode = false;
-        public bool EnableMissionBinder = true;
-        public bool EnableFreeplayBriefcase = true;
-
     }
 
     public BombMessageResponder bombMessageResponder = null;
@@ -74,6 +69,9 @@ public class TwitchPlaysService : MonoBehaviour
 
         ModuleData.LoadDataFromFile();
         ModuleData.WriteDataToFile();
+
+        TwitchPlaySettings.LoadDataFromFile();
+        
 
         SetupResponder(bombMessageResponder);
         SetupResponder(postGameMessageResponder);
@@ -162,6 +160,7 @@ public class TwitchPlaysService : MonoBehaviour
 
             case KMGameInfo.State.Transitioning:
                 ModuleData.LoadDataFromFile();
+                TwitchPlaySettings.LoadDataFromFile();
                 return null;
 
             default:
