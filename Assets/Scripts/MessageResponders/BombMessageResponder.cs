@@ -63,6 +63,7 @@ public class BombMessageResponder : MessageResponder
 
     private void OnDisable()
     {
+        TwitchComponentHandle.ClaimedList.Clear();
         StopAllCoroutines();
         leaderboard.BombsAttempted++;
         string bombMessage = null;

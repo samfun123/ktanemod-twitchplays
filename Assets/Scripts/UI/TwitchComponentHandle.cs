@@ -1,5 +1,7 @@
 using System;
 using System.Collections;
+using System.Collections.Generic;
+using System.Linq;
 using System.Text.RegularExpressions;
 using UnityEngine;
 using UnityEngine.UI;
@@ -42,6 +44,8 @@ public class TwitchComponentHandle : MonoBehaviour
     public Color solvedBackgroundColor = new Color(0,128,0);
     public Color markedBackgroundColor = new Color(0, 0, 0);
 
+    public AudioSource takeModuleSound = null;
+
 
     [HideInInspector]
     public IRCConnection ircConnection = null;
@@ -75,6 +79,7 @@ public class TwitchComponentHandle : MonoBehaviour
 
     [HideInInspector]
     public int bombID;
+
     #endregion
 
     #region Private Fields
@@ -82,6 +87,7 @@ public class TwitchComponentHandle : MonoBehaviour
     private ComponentSolver _solver = null;
     private Color unclaimedBackgroundColor = new Color(0, 0, 0);
     private string playerName = null;
+    private bool _solved = false;
     #endregion
 
     #region Private Statics
@@ -226,6 +232,16 @@ public class TwitchComponentHandle : MonoBehaviour
     public void OnPass()
     {
         canvasGroupMultiDecker.alpha = 0.0f;
+        _solved = true;
+        if (playerName != null)
+        {
+            ClaimedList.Remove(playerName);
+        }
+        if (TakeInProgress != null)
+        {
+            StopCoroutine(TakeInProgress);
+            TakeInProgress = null;
+        }
     }
 
     public static void ResetId()
@@ -236,14 +252,62 @@ public class TwitchComponentHandle : MonoBehaviour
 
     public IEnumerator TakeModule(string userNickName, string targetModule)
     {
+        if (takeModuleSound != null)
+        {
+            takeModuleSound.time = 0.0f;
+            takeModuleSound.Play();
+        }
         yield return new WaitForSecondsRealtime(60.0f);
         SetBannerColor(unclaimedBackgroundColor);
-        ircConnection.SendMessage(string.Format("/me {1} has released Module {0} ({2}).", targetModule, playerName, headerText.text));
-        playerName = null;
-        TakeInProgress = null;
+        if (playerName != null)
+        {
+            ircConnection.SendMessage(string.Format("/me {1} has released Module {0} ({2}).", targetModule, playerName, headerText.text));
+            ClaimedList.Remove(playerName);
+            playerName = null;
+            TakeInProgress = null;
+        }
+    }
+
+    public IEnumerator ReleaseModule(string player, string userNickName)
+    {
+        if (_solved)
+        {
+            yield break;
+        }
+        if (!UserAccess.HasAccess(userNickName, AccessLevel.Mod))
+        {
+            yield return new WaitForSeconds(TwitchPlaySettings.data.ClaimCooldownTime);
+        }
+        if(!_solved)
+        {
+            ClaimedList.Remove(player);
+        }
+    }
+
+    public string ClaimModule(string userNickName, string targetModule)
+    {
+        if (playerName == null)
+        {
+            if (ClaimedList.Count(nick => nick.Equals(userNickName)) >= TwitchPlaySettings.data.ModuleClaimLimit && !_solved)
+            {
+                return string.Format(TwitchPlaySettings.data.TooManyClaimed, userNickName, TwitchPlaySettings.data.ModuleClaimLimit);
+            }
+            else
+            {
+                if (!_solved)
+                {
+                    ClaimedList.Add(userNickName);
+                }
+                SetBannerColor(claimedBackgroundColour);
+                playerName = userNickName;
+                return string.Format("/me {1} has claimed Module {0} ({2}).", targetModule, playerName, headerText.text);
+            }
+        }
+        return null;
     }
 
     public IEnumerator TakeInProgress = null;
+    public static List<string> ClaimedList = new List<string>(); 
 
     #region Message Interface
     public IEnumerator OnMessageReceived(string userNickName, string userColor, string text)
@@ -256,7 +320,7 @@ public class TwitchComponentHandle : MonoBehaviour
 
         string targetModule = match.Groups[1].Value;
         string internalCommand = match.Groups[2].Value;
-        
+
     string messageOut = null;
         if ((internalCommand.StartsWith("manual", StringComparison.InvariantCultureIgnoreCase)) || (internalCommand.Equals("help", StringComparison.InvariantCultureIgnoreCase)))
         {
@@ -275,16 +339,15 @@ public class TwitchComponentHandle : MonoBehaviour
             if (manualText.StartsWith("http://", StringComparison.InvariantCultureIgnoreCase) ||
                 manualText.StartsWith("https://", StringComparison.InvariantCultureIgnoreCase))
             {
-                messageOut = manualText;
+                messageOut = string.Format("{0} : {1} : {2}", headerText.text, _solver.modInfo.helpText, manualText);
             }
             else
             {
                 //messageOut = string.Format("{0}: {1}", headerText.text, TwitchPlaysService.urlHelper.ManualFor(manualText, manualType));
                 messageOut = string.Format("{0} : {1} : {2}", headerText.text, _solver.modInfo.helpText, TwitchPlaysService.urlHelper.ManualFor(manualText, manualType));
             }
-
         }
-        else if (Regex.IsMatch(internalCommand, "^(bomb|queue) (turn( a?round)?|flip|spin)$", RegexOptions.IgnoreCase))
+        else if (Regex.IsMatch(internalCommand, "^(bomb|queue) (turn( a?round)?|flip|spin)$", RegexOptions.IgnoreCase) && !_solved)
         {
             if (!_solver._turnQueued)
             {
@@ -293,24 +356,25 @@ public class TwitchComponentHandle : MonoBehaviour
             }
             messageOut = string.Format("/me Turning to the other side when Module {0} ({1}) is solved", targetModule, headerText.text);
         }
-        else if (Regex.IsMatch(internalCommand, "^cancel (bomb|queue) (turn( a?round)?|flip|spin)$", RegexOptions.IgnoreCase))
+        else if (Regex.IsMatch(internalCommand, "^cancel (bomb|queue) (turn( a?round)?|flip|spin)$", RegexOptions.IgnoreCase) && !_solved)
         {
             _solver._turnQueued = false;
             messageOut = string.Format("/me Bomb turn on Module {0} ({1}) solve cancelled", targetModule, headerText.text);
         }
         else if (internalCommand.Equals("claim", StringComparison.InvariantCultureIgnoreCase))
         {
-            if (playerName == null)
-            {
-                SetBannerColor(claimedBackgroundColour);
-                playerName = userNickName;
-                ircConnection.SendMessage(string.Format("/me {1} has claimed Module {0} ({2}).", targetModule, playerName, headerText.text));
-            }
+            messageOut = ClaimModule(userNickName, targetModule);
         }
         else if (internalCommand.Equals("unclaim", StringComparison.InvariantCultureIgnoreCase))
         {
             if (((playerName != null) && (playerName == userNickName)) || (UserAccess.HasAccess(userNickName, AccessLevel.Mod)))
             {
+                if (TakeInProgress != null)
+                {
+                    StopCoroutine(TakeInProgress);
+                    TakeInProgress = null;
+                }
+                StartCoroutine(ReleaseModule(playerName, userNickName));
                 SetBannerColor(unclaimedBackgroundColor);
                 messageOut = string.Format("/me {1} has released Module {0} ({2}).", targetModule, playerName, headerText.text);
                 playerName = null;
@@ -329,34 +393,50 @@ public class TwitchComponentHandle : MonoBehaviour
         {
             if (UserAccess.HasAccess(userNickName, AccessLevel.Mod))
             {
+                if (playerName != null && !_solved)
+                {
+                    ClaimedList.Remove(playerName);
+                }
                 string newplayerName = internalCommand.Remove(0, 7).Trim();
                 playerName = newplayerName;
+                if(!_solved)
+                {
+                    ClaimedList.Add(playerName);
+                }
                 SetBannerColor(claimedBackgroundColour);
-                ircConnection.SendMessage(string.Format("/me Module {0} ({3}) assigned to {1} by {2}", targetModule, playerName, userNickName, headerText.text));
+                messageOut = string.Format("/me Module {0} ({3}) assigned to {1} by {2}", targetModule, playerName, userNickName, headerText.text);
             }
         }
         else if (internalCommand.Equals("take", StringComparison.InvariantCultureIgnoreCase))
         {
-            if ((playerName != null) && (userNickName != playerName))
+            if ((playerName != null) && (userNickName != playerName) && (TakeInProgress == null))
             {
-                ircConnection.SendMessage(string.Format("/me {0}, {1} wishes to take Module {2} ({3}). It will be freed up in one minute unless you type !{2} mine.", playerName, userNickName, targetModule, headerText.text));
-                if (TakeInProgress == null)
+                if (!_solved)
                 {
+                    messageOut = string.Format("/me {0}, {1} wishes to take Module {2} ({3}). It will be freed up in one minute unless you type !{2} mine.", playerName, userNickName, targetModule, headerText.text);
                     TakeInProgress = TakeModule(userNickName, targetModule);
                     StartCoroutine(TakeInProgress);
                 }
+            }
+            else if ((playerName != null) && (userNickName != playerName))
+            {
+                messageOut = string.Format("/me Sorry @{0}, There is already a takeover attempt for Module {1} ({2}) in progress.", userNickName, targetModule, headerText.text);
             }
         }
         else if (internalCommand.Equals("mine", StringComparison.InvariantCultureIgnoreCase))
         {
             if (playerName == userNickName)
             {
-                ircConnection.SendMessage(string.Format("/me {0} confirms he/she is still working on {1} ({2})", playerName, targetModule, headerText.text));
+                messageOut = string.Format("/me {0} confirms he/she is still working on {1} ({2})", playerName, targetModule, headerText.text);
                 if (TakeInProgress != null)
                 {
                     StopCoroutine(TakeInProgress);
                     TakeInProgress = null;
                 }
+            }
+            else if (playerName == null)
+            {
+                messageOut = ClaimModule(userNickName, targetModule);
             }
         }
         else if (internalCommand.Equals("mark", StringComparison.InvariantCultureIgnoreCase))
@@ -364,6 +444,7 @@ public class TwitchComponentHandle : MonoBehaviour
             if (UserAccess.HasAccess(userNickName, AccessLevel.Mod))
             {
                 SetBannerColor(markedBackgroundColor);
+                return null;
             }
 
         }

@@ -18,6 +18,8 @@ public class TwitchPlaySettingsData
     public bool EnableRetryButton = true;
     public bool EnableTwitchPlaysMode = true;
     public int BombLiveMessageDelay = 0;
+    public int ClaimCooldownTime = 30;
+    public int ModuleClaimLimit = 2;
 
     public string TPSharedFolder = Path.Combine(Application.persistentDataPath, "TwitchPlaysShared");
     public string TPSolveStrikeLog = "TPLog.txt";
@@ -46,11 +48,13 @@ public class TwitchPlaySettingsData
     public string RankQuery = "SeemsGood {0} is #{1} {4}with {2} solves and {3} strikes{5}";
 
     public string DoYouEvenPlayBro = "FailFish {0}, do you even play this game?";
+
+    public string TooManyClaimed = "rooCop Sorry, {0} , you may only have {1} claimed modules.";
 }
 
 public static class TwitchPlaySettings
 {
-    public static int SettingsVersion = 2;
+    public static int SettingsVersion = 3;
     public static TwitchPlaySettingsData data;
 
     public static void WriteDataToFile()
