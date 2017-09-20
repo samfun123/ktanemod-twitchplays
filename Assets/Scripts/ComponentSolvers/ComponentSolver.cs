@@ -37,7 +37,7 @@ public abstract class ComponentSolver : ICommandResponder
     #endregion
 
     #region Interface Implementation
-    public IEnumerator RespondToCommand(string userNickName, string message, ICommandResponseNotifier responseNotifier)
+    public IEnumerator RespondToCommand(string userNickName, string message, ICommandResponseNotifier responseNotifier, IRCConnection connection)
     {
 		_responded = false;
         _processingTwitchCommand = true;

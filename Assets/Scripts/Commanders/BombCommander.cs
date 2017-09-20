@@ -77,7 +77,7 @@ public class BombCommander : ICommandResponder
     #endregion
 
     #region Interface Implementation
-    public IEnumerator RespondToCommand(string userNickName, string message, ICommandResponseNotifier responseNotifier)
+    public IEnumerator RespondToCommand(string userNickName, string message, ICommandResponseNotifier responseNotifier, IRCConnection connection)
     {
         if (message.Equals("hold", StringComparison.InvariantCultureIgnoreCase) ||
             message.Equals("pick up", StringComparison.InvariantCultureIgnoreCase))

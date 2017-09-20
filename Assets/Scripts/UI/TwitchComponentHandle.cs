@@ -513,7 +513,7 @@ public class TwitchComponentHandle : MonoBehaviour
 
         if (_solver != null)
         {
-            IEnumerator commandResponseCoroutine = _solver.RespondToCommand(userNickName, internalCommand, message);
+            IEnumerator commandResponseCoroutine = _solver.RespondToCommand(userNickName, internalCommand, message, ircConnection);
             while (commandResponseCoroutine.MoveNext())
             {
                 yield return commandResponseCoroutine.Current;

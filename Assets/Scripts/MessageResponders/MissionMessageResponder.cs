@@ -64,13 +64,12 @@ public class MissionMessageResponder : MessageResponder
         {
             return;
         }
-
         Match binderMatch = Regex.Match(text, "^!binder (.+)", RegexOptions.IgnoreCase);
         if (binderMatch.Success)
         {
             if (TwitchPlaySettings.data.EnableMissionBinder || UserAccess.HasAccess(userNickName, AccessLevel.Admin))
             {
-                _coroutineQueue.AddToQueue(_bombBinderCommander.RespondToCommand(userNickName, binderMatch.Groups[1].Value, null));
+                _coroutineQueue.AddToQueue(_bombBinderCommander.RespondToCommand(userNickName, binderMatch.Groups[1].Value, null, _ircConnection));
             }
         }
 
@@ -79,7 +78,7 @@ public class MissionMessageResponder : MessageResponder
         {
             if (TwitchPlaySettings.data.EnableFreeplayBriefcase || UserAccess.HasAccess(userNickName, AccessLevel.Admin))
             {
-                _coroutineQueue.AddToQueue(_freeplayCommander.RespondToCommand(userNickName, freeplayMatch.Groups[1].Value, null));
+                _coroutineQueue.AddToQueue(_freeplayCommander.RespondToCommand(userNickName, freeplayMatch.Groups[1].Value, null, _ircConnection));
             }
         }
     }

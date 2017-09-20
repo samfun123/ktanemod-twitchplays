@@ -215,7 +215,7 @@ public class TwitchBombHandle : MonoBehaviour
         }
         highlightGroup.alpha = 1.0f;
 
-        IEnumerator commandResponseCoroutine = bombCommander.RespondToCommand(userNickName, internalCommand, message);
+        IEnumerator commandResponseCoroutine = bombCommander.RespondToCommand(userNickName, internalCommand, message, ircConnection);
         while (commandResponseCoroutine.MoveNext())
         {
             string chatmessage = commandResponseCoroutine.Current as string;
