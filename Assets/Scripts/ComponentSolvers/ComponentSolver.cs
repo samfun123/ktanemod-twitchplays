@@ -65,7 +65,12 @@ public abstract class ComponentSolver : ICommandResponder
 
         if (subcoroutine == null || !subcoroutine.MoveNext())
         {
-			try
+            if (_responded)
+            {
+                yield break;
+            }
+
+            try
 			{
 				subcoroutine = RespondToCommandInternal(message);
 			}
@@ -359,8 +364,6 @@ public abstract class ComponentSolver : ICommandResponder
                 }
                 break;
         }
-
-        
 
         if (_delegatedSolveUserNickName != null && _delegatedSolveResponseNotifier != null)
         {
