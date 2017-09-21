@@ -258,7 +258,7 @@ public class BombMessageResponder : MessageResponder
 
     protected override void OnMessageReceived(string userNickName, string userColorCode, string text)
     {
-        if (!TwitchPlaySettings.data.EnableTwitchPlaysMode && !UserAccess.HasAccess(userNickName, AccessLevel.SuperUser))
+        if (!TwitchPlaySettings.data.EnableTwitchPlaysMode && !UserAccess.HasAccess(userNickName, AccessLevel.Defuser, true))
         {
             return;
         }
