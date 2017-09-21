@@ -133,33 +133,90 @@ public class MiscellaneousMessageResponder : MessageResponder
             _ircConnection.SendMessage("Keep Talking and Nobody Explodes is developed by Steel Crate Games. It's available for Windows PC, Mac OS X, PlayStation VR, Samsung Gear VR and Google Daydream. See http://www.keeptalkinggame.com/ for more information!");
             return;
         }
-        else if (text.Equals("!reloaddata", StringComparison.InvariantCultureIgnoreCase))
+        else if (text.StartsWith("!add ", StringComparison.InvariantCultureIgnoreCase) || text.StartsWith("!remove ", StringComparison.InvariantCultureIgnoreCase))
         {
-            if (UserAccess.HasAccess(userNickName, AccessLevel.SuperUser))
+            if (!UserAccess.HasAccess(userNickName, AccessLevel.Mod, true))
+            {
+                return;
+            }
+
+            bool add = text.StartsWith("!add ", StringComparison.InvariantCultureIgnoreCase);
+            string[] split = text.Split(' ');
+            if (split.Length != 3)
+            {
+                return;
+            }
+            AccessLevel level = AccessLevel.User;
+            switch (split[1].ToLowerInvariant())
+            {
+                case "mod":
+                case "moderator":
+                    level = UserAccess.HasAccess(userNickName, AccessLevel.SuperUser) ? AccessLevel.Mod : AccessLevel.User;
+                    break;
+                case "admin":
+                case "administrator":
+                    level = UserAccess.HasAccess(userNickName, AccessLevel.SuperUser) ? AccessLevel.Admin : AccessLevel.User;
+                    break;
+                case "superadmin":
+                case "superuser":
+                case "super-user":
+                case "super-admin":
+                case "super-mod":
+                case "supermod":
+                    level = UserAccess.HasAccess(userNickName, AccessLevel.SuperUser) ? AccessLevel.SuperUser : AccessLevel.User;
+                    break;
+                case "defuser":
+                    level = AccessLevel.Defuser;
+                    break;
+            }
+            if (level == AccessLevel.User)
+            {
+                return;
+            }
+
+
+            if (add)
+            {
+                UserAccess.AddUser(split[2], level);
+                UserAccess.WriteAccessList();
+                _ircConnection.SendMessage(string.Format("/me Added {0} as {1}", split[2], level));
+            }
+            else
+            {
+                if (level == AccessLevel.SuperUser && userNickName.Equals(split[2]))
+                {
+                    _ircConnection.SendMessage(string.Format("/me Sorry @{0}, you Can't remove yourself as Super User.",userNickName));
+                    return; //Prevent locking yourself out.
+                }
+                UserAccess.RemoveUser(split[2], level);
+                UserAccess.WriteAccessList();
+                _ircConnection.SendMessage(string.Format("/me Removed {0} from {1}", split[2], level));
+            }
+        }
+
+
+        if (UserAccess.HasAccess(userNickName, AccessLevel.SuperUser))
+        {
+            if (text.Equals("!reloaddata", StringComparison.InvariantCultureIgnoreCase))
             {
                 ModuleData.LoadDataFromFile();
                 TwitchPlaySettings.LoadDataFromFile();
                 UserAccess.LoadAccessList();
                 _ircConnection.SendMessage("Data reloaded");
             }
-        }
-        else if (text.Equals("!enabletwitchplays", StringComparison.InvariantCultureIgnoreCase))
-        {
-            if (UserAccess.HasAccess(userNickName, AccessLevel.SuperUser))
+            else if (text.Equals("!enabletwitchplays", StringComparison.InvariantCultureIgnoreCase))
             {
                 _ircConnection.SendMessage("Twitch Plays Enabled");
                 TwitchPlaySettings.data.EnableTwitchPlaysMode = true;
                 TwitchPlaySettings.WriteDataToFile();
             }
-        }
-        else if (text.Equals("!disabletwitchplays", StringComparison.InvariantCultureIgnoreCase))
-        {
-            if (UserAccess.HasAccess(userNickName, AccessLevel.SuperUser))
+            else if (text.Equals("!disabletwitchplays", StringComparison.InvariantCultureIgnoreCase))
             {
                 _ircConnection.SendMessage("Twitch Plays Disabled");
                 TwitchPlaySettings.data.EnableTwitchPlaysMode = false;
                 TwitchPlaySettings.WriteDataToFile();
             }
         }
+
     }
 }
