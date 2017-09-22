@@ -78,6 +78,9 @@ public class TwitchComponentHandle : MonoBehaviour
     public Leaderboard leaderboard = null;
 
     [HideInInspector]
+    public bool claimed { get { return (playerName != null); } }
+
+    [HideInInspector]
     public int bombID;
 
     #endregion
