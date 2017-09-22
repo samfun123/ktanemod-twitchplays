@@ -59,6 +59,9 @@ public static class CommonReflectedTypeInfo
         TimeRemainingField = TimerComponentType.GetField("TimeRemaining", BindingFlags.Public | BindingFlags.Instance);
         GetFormattedTimeMethod = TimerComponentType.GetMethod("GetFormattedTime", BindingFlags.Public | BindingFlags.Static);
 
+        AlarmClockType = ReflectionHelper.FindType("Assets.Scripts.Props.AlarmClock");
+        AlarmClockSnooze = AlarmClockType.GetMethod("ButtonDown", BindingFlags.Public | BindingFlags.Instance);
+
         ResultPageType = ReflectionHelper.FindType("ResultPage");
 
         PassEventType = ReflectionHelper.FindType("PassEvent");
@@ -157,10 +160,24 @@ public static class CommonReflectedTypeInfo
 		get;
 		private set;
 	}
-	#endregion
+    #endregion
 
-	#region Timer Component
-	public static Type TimerComponentType
+    #region AlarmClock
+    public static Type AlarmClockType
+    {
+        get;
+        private set;
+    }
+
+    public static MethodInfo AlarmClockSnooze
+    {
+        get;
+        private set;
+    }
+    #endregion
+
+    #region Timer Component
+    public static Type TimerComponentType
     {
         get;
         private set;

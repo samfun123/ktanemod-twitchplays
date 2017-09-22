@@ -17,6 +17,8 @@ public class BombMessageResponder : MessageResponder
     private List<TwitchComponentHandle> _componentHandles = new List<TwitchComponentHandle>();
     private int _currentBomb = -1;
 
+    private UnityEngine.Object AlarmClock;
+
     public static ModuleCameras moduleCameras = null;
 
     private static bool BombActive = false;
@@ -256,6 +258,14 @@ public class BombMessageResponder : MessageResponder
             }
         } while (bombs == null || bombs.Length == 0);
 
+        UnityEngine.Object[] clocks;
+        do
+        {
+            yield return null;
+            clocks = FindObjectsOfType(CommonReflectedTypeInfo.AlarmClockType);
+        } while (clocks == null || clocks.Length == 0);
+        AlarmClock = clocks[0];
+
         moduleCameras = Instantiate<ModuleCameras>(moduleCamerasPrefab);
     }
 
@@ -284,6 +294,12 @@ public class BombMessageResponder : MessageResponder
     {
         if (!TwitchPlaySettings.data.EnableTwitchPlaysMode && !UserAccess.HasAccess(userNickName, AccessLevel.Defuser, true))
         {
+            return;
+        }
+
+        if (text.Equals("!snooze", StringComparison.InvariantCultureIgnoreCase))
+        {
+            CommonReflectedTypeInfo.AlarmClockSnooze.Invoke(AlarmClock, new object[] {0});
             return;
         }
 
