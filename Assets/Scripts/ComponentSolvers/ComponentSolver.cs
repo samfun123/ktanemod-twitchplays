@@ -315,7 +315,8 @@ public abstract class ComponentSolver : ICommandResponder
 
 		_currentUserNickName = null;
 		_delegatedSolveUserNickName = null;
-		BombCommander.RemoveSolveBasedModules();
+
+	    TwitchComponentHandle.RemoveSolveBasedModules();
 		CommonReflectedTypeInfo.HandlePassMethod.Invoke(BombComponent, null);
 	}
 	#endregion

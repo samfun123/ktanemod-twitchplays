@@ -53,15 +53,17 @@ public class BombMessageResponder : MessageResponder
 
     #region Unity Lifecycle
 
-    public static void EnableDisableInput()
+    public static bool EnableDisableInput()
     {
         if (!TwitchPlaysService.DebugMode && TwitchPlaySettings.data.EnableTwitchPlaysMode && !TwitchPlaySettings.data.EnableInteractiveMode && BombActive)
         {
             InputInterceptor.DisableInput();
+            return true;
         }
         else
         {
             InputInterceptor.EnableInput();
+            return false;
         }
     }
 
@@ -80,6 +82,7 @@ public class BombMessageResponder : MessageResponder
         BombActive = false;
         EnableDisableInput();
         TwitchComponentHandle.ClaimedList.Clear();
+        TwitchComponentHandle.ClearUnsupportedModules();
         StopAllCoroutines();
         leaderboard.BombsAttempted++;
         string bombMessage = null;
@@ -267,6 +270,11 @@ public class BombMessageResponder : MessageResponder
         AlarmClock = clocks[0];
 
         moduleCameras = Instantiate<ModuleCameras>(moduleCamerasPrefab);
+
+        if (EnableDisableInput())
+        {
+            TwitchComponentHandle.SolveUnsupportedModules();
+        }
     }
 
     private void SetBomb(MonoBehaviour bomb, int id)

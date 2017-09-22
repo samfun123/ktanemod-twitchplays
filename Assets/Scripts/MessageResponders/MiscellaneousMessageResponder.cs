@@ -209,30 +209,52 @@ public class MiscellaneousMessageResponder : MessageResponder
                 _ircConnection.SendMessage("Twitch Plays Enabled");
                 TwitchPlaySettings.data.EnableTwitchPlaysMode = true;
                 TwitchPlaySettings.WriteDataToFile();
-                BombMessageResponder.EnableDisableInput();
+                EnableDisableInput();
             }
             else if (text.Equals("!disabletwitchplays", StringComparison.InvariantCultureIgnoreCase))
             {
                 _ircConnection.SendMessage("Twitch Plays Disabled");
                 TwitchPlaySettings.data.EnableTwitchPlaysMode = false;
                 TwitchPlaySettings.WriteDataToFile();
-                BombMessageResponder.EnableDisableInput();
+                EnableDisableInput();
             }
             else if (text.Equals("!enableinteractivemode", StringComparison.InvariantCultureIgnoreCase))
             {
                 _ircConnection.SendMessage("Interactive Mode Enabled");
                 TwitchPlaySettings.data.EnableInteractiveMode = true;
                 TwitchPlaySettings.WriteDataToFile();
-                BombMessageResponder.EnableDisableInput();
+                EnableDisableInput();
             }
             else if (text.Equals("!disableinteractivemode", StringComparison.InvariantCultureIgnoreCase))
             {
                 _ircConnection.SendMessage("Interactive Mode Disabled");
                 TwitchPlaySettings.data.EnableInteractiveMode = false;
                 TwitchPlaySettings.WriteDataToFile();
-                BombMessageResponder.EnableDisableInput();
+                EnableDisableInput();
+            }
+            else if (text.Equals("!solveunsupportedmodules", StringComparison.InvariantCultureIgnoreCase))
+            {
+                _ircConnection.SendMessage("Solving unsupported modules.");
+                TwitchComponentHandle.SolveUnsupportedModules();
+            }
+            else if (text.Equals("!removesolvebasedmodules", StringComparison.InvariantCultureIgnoreCase))
+            {
+                _ircConnection.SendMessage("Removing Solve based modules");
+                TwitchComponentHandle.RemoveSolveBasedModules();
             }
         }
-
     }
+
+    private void EnableDisableInput()
+    {
+        if (!BombMessageResponder.EnableDisableInput())
+        {
+            return;
+        }
+        if (TwitchComponentHandle.SolveUnsupportedModules())
+        {
+            _ircConnection.SendMessage("Some modules were automatically solved to prevent problems with defusing this bomb.");
+        }
+    }
+
 }

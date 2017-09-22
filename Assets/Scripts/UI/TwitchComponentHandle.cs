@@ -91,6 +91,8 @@ public class TwitchComponentHandle : MonoBehaviour
     #endregion
 
     #region Private Statics
+    private static List<TwitchComponentHandle> _unsupportedComponents = new List<TwitchComponentHandle>();
+    private static List<BombCommander> _bombCommanders = new List<BombCommander>();
     private static int _nextID = 0;
     private static int GetNewID()
     {
@@ -203,17 +205,51 @@ public class TwitchComponentHandle : MonoBehaviour
             unsupportedPrefab.gameObject.SetActive(true);
             idBannerPrefab.gameObject.SetActive(false);
             canvasGroupMultiDecker.alpha = 0.0f;
+            _unsupportedComponents.Add(this);
 
             if (TwitchPlaySettings.data.EnableTwitchPlaysMode && !TwitchPlaySettings.data.EnableInteractiveMode)
             {
                 Debug.Log("[TwitchPlays] An unimplemented module was added to a bomb, solving module.");
-                bombCommander.RemoveSolveBasedModules();
-                CommonReflectedTypeInfo.HandlePassMethod.Invoke(bombComponent, null);
             }
+        }
+
+        if (!_bombCommanders.Contains(bombCommander))
+        {
+            _bombCommanders.Add(bombCommander);
         }
 
         Arrow.gameObject.SetActive(true);
         HighlightArrow.gameObject.SetActive(true);
+    }
+
+    public static bool SolveUnsupportedModules()
+    {
+        bool result = _unsupportedComponents.Count > 0;
+        foreach (TwitchComponentHandle handle in _unsupportedComponents)
+        {
+            CommonReflectedTypeInfo.HandlePassMethod.Invoke(handle.bombComponent, null);
+        }
+        if (result)
+        {
+            RemoveSolveBasedModules();
+        }
+        _unsupportedComponents.Clear();
+        return result;
+    }
+
+    public static void RemoveSolveBasedModules()
+    {
+        foreach (BombCommander commander in _bombCommanders)
+        {
+            commander.RemoveSolveBasedModules();
+        }
+        _bombCommanders.Clear();
+    }
+
+    public static void ClearUnsupportedModules()
+    {
+        _bombCommanders.Clear();
+        _unsupportedComponents.Clear();
     }
 
     private void LateUpdate()
