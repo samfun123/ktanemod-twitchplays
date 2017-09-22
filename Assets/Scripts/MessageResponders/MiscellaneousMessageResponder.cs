@@ -54,7 +54,7 @@ public class MiscellaneousMessageResponder : MessageResponder
                 scorerewarded = Mathf.Abs(scorerewarded);
                 _ircConnection.SendMessage(string.Format("{0} lost {1} points", userNickName, parts[2]));
                 Color usedColor = new Color(.31f, .31f, .31f);
-                leaderboard.AddScore(playerrewarded, usedColor, scorerewarded);
+                leaderboard.AddScore(playerrewarded, usedColor, -scorerewarded);
             }
             return;
         }
@@ -64,7 +64,7 @@ public class MiscellaneousMessageResponder : MessageResponder
             {
                 string[] parts = text.Split(' ');
                 moduleCountBonus = Int32.Parse(parts[1]);
-                TwitchPlaySettings.WriteRewardData(moduleCountBonus);
+                TwitchPlaySettings.SetRewardBonus(moduleCountBonus);
             }
         }        
         else if (text.StartsWith("!rank", StringComparison.InvariantCultureIgnoreCase))
@@ -165,8 +165,16 @@ public class MiscellaneousMessageResponder : MessageResponder
                 case "supermod":
                     level = UserAccess.HasAccess(userNickName, AccessLevel.SuperUser) ? AccessLevel.SuperUser : AccessLevel.User;
                     break;
+
+                
                 case "defuser":
                     level = AccessLevel.Defuser;
+                    break;
+                case "no-points":
+                case "no-score":
+                case "noscore":
+                case "nopoints":
+                    level = AccessLevel.NoPoints;
                     break;
             }
             if (level == AccessLevel.User)

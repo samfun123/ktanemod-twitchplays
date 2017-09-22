@@ -156,7 +156,7 @@ public static class TwitchPlaySettings
 
     public static void AppendToPlayerLog(string userNickName)
     {
-        if (!Players.Contains(userNickName))
+        if (!Players.Contains(userNickName) && !UserAccess.HasAccess(userNickName, AccessLevel.NoPoints))
         {
             Players.Add(userNickName);
         }
@@ -183,7 +183,12 @@ public static class TwitchPlaySettings
         return string.Format(data.BombDefusedBonusMessage, ClearReward) + data.BombDefusedFooter;
     }
 
-    public static void WriteRewardData(int moduleCountBonus)
+    public static void AddRewardBonus(int bonus)
+    {
+        ClearReward += bonus;
+    }
+
+    public static void SetRewardBonus(int moduleCountBonus)
     {
         ClearReward = moduleCountBonus;
     }

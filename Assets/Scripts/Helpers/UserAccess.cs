@@ -11,12 +11,13 @@ using Formatting = Newtonsoft.Json.Formatting;
 [Flags()]
 public enum AccessLevel
 {
-    SuperUser = 0x80,
-    Admin = 0x40,
-    Mod = 0x20,
-
-    Defuser = 0x01,
-    User = 0x00
+    SuperUser = 0x8000,
+    Admin = 0x4000,
+    Mod = 0x2000,
+    
+    Defuser = 0x0002,
+    NoPoints = 0x0001,
+    User = 0x0000
 }
 
 public static class UserAccess
@@ -31,7 +32,6 @@ public static class UserAccess
          * The access level enum can be extended further per your requirements.
          * 
          * Use the helper method below to determine if the user has access for a particular access level or not.
-         * TODO: Extend this to a JSON-serializable type, and/or inspect the decorated PRIVMSG lines from IRC to infer moderator status from the Twitch Chat moderator flag.
          */
 
         //Twitch Usernames can't actually begin with an underscore, so these are safe to include as examples
