@@ -204,10 +204,13 @@ public class TwitchComponentHandle : MonoBehaviour
             idBannerPrefab.gameObject.SetActive(false);
             canvasGroupMultiDecker.alpha = 0.0f;
 
-			Debug.Log("[TwitchPlays] An unimplemented module was added to a bomb, solving module.");
-			bombCommander.RemoveSolveBasedModules();
-			CommonReflectedTypeInfo.HandlePassMethod.Invoke(bombComponent, null);
-		}
+            if (TwitchPlaySettings.data.EnableTwitchPlaysMode && !TwitchPlaySettings.data.EnableInteractiveMode)
+            {
+                Debug.Log("[TwitchPlays] An unimplemented module was added to a bomb, solving module.");
+                bombCommander.RemoveSolveBasedModules();
+                CommonReflectedTypeInfo.HandlePassMethod.Invoke(bombComponent, null);
+            }
+        }
 
         Arrow.gameObject.SetActive(true);
         HighlightArrow.gameObject.SetActive(true);

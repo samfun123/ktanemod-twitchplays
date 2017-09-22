@@ -475,6 +475,14 @@ public class BombCommander : ICommandResponder
         RotateByLocalQuaternion(target);
     }
 
+    public bool IsSolved
+    {
+        get
+        {
+            return (bool) CommonReflectedTypeInfo.IsSolvedMethod.Invoke(Bomb, null);
+        }
+    }
+
     public float CurrentTimerElapsed
     {
         get

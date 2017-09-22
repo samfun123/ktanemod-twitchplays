@@ -209,12 +209,28 @@ public class MiscellaneousMessageResponder : MessageResponder
                 _ircConnection.SendMessage("Twitch Plays Enabled");
                 TwitchPlaySettings.data.EnableTwitchPlaysMode = true;
                 TwitchPlaySettings.WriteDataToFile();
+                BombMessageResponder.EnableDisableInput();
             }
             else if (text.Equals("!disabletwitchplays", StringComparison.InvariantCultureIgnoreCase))
             {
                 _ircConnection.SendMessage("Twitch Plays Disabled");
                 TwitchPlaySettings.data.EnableTwitchPlaysMode = false;
                 TwitchPlaySettings.WriteDataToFile();
+                BombMessageResponder.EnableDisableInput();
+            }
+            else if (text.Equals("!enableinteractivemode", StringComparison.InvariantCultureIgnoreCase))
+            {
+                _ircConnection.SendMessage("Interactive Mode Enabled");
+                TwitchPlaySettings.data.EnableInteractiveMode = true;
+                TwitchPlaySettings.WriteDataToFile();
+                BombMessageResponder.EnableDisableInput();
+            }
+            else if (text.Equals("!disableinteractivemode", StringComparison.InvariantCultureIgnoreCase))
+            {
+                _ircConnection.SendMessage("Interactive Mode Disabled");
+                TwitchPlaySettings.data.EnableInteractiveMode = false;
+                TwitchPlaySettings.WriteDataToFile();
+                BombMessageResponder.EnableDisableInput();
             }
         }
 

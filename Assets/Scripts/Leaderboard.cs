@@ -110,7 +110,7 @@ public class Leaderboard
         return _entryDictionary.TryGetValue(UserName.ToLowerInvariant(), out entry);
     }
 
-    private LeaderboardEntry GetEntry(string userName, Color userColor)
+    private LeaderboardEntry GetEntry(string userName)
     {
         LeaderboardEntry entry = null;
         if (!GetEntry(userName, out entry))
@@ -118,7 +118,15 @@ public class Leaderboard
             entry = new LeaderboardEntry();
             _entryDictionary[userName.ToLowerInvariant()] = entry;
             _entryList.Add(entry);
+            entry.UserColor = Color.black;
         }
+        entry.UserName = userName;
+        return entry;
+    }
+
+    private LeaderboardEntry GetEntry(string userName, Color userColor)
+    {
+        LeaderboardEntry entry = GetEntry(userName);
         entry.UserName = userName;
         entry.UserColor = userColor;
         return entry;
@@ -163,6 +171,14 @@ public class Leaderboard
         LeaderboardEntry entry = GetEntry(userName, userColor);
 
         entry.AddStrike(numStrikes);
+        entry.LastAction = DateTime.Now;
+        ResetSortFlag();
+    }
+
+    public void AddScore(string userName, int numScore)
+    {
+        LeaderboardEntry entry = GetEntry(userName);
+        entry.AddScore(numScore);
         entry.LastAction = DateTime.Now;
         ResetSortFlag();
     }

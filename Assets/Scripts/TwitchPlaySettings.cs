@@ -17,14 +17,13 @@ public class TwitchPlaySettingsData
     public bool ForceMultiDeckerMode = false;
     public bool EnableRetryButton = true;
     public bool EnableTwitchPlaysMode = true;
+    public bool EnableInteractiveMode = false;
     public int BombLiveMessageDelay = 0;
     public int ClaimCooldownTime = 30;
     public int ModuleClaimLimit = 2;
 
     public string TPSharedFolder = Path.Combine(Application.persistentDataPath, "TwitchPlaysShared");
     public string TPSolveStrikeLog = "TPLog.txt";
-    public string TPPlayersLog = "TPplayers.txt";
-    public string TPModScores = "modscores.txt";
 
     public string InvalidCommand = "Sorry @{0}, that command is invalid.";
 
@@ -35,11 +34,16 @@ public class TwitchPlaySettingsData
     public string MultiBombLiveMessage = "The next set of bombs are now live! Start sending your commands! MrDestructoid";
 
     public string BombExplodedMessage = "KAPOW KAPOW The bomb has exploded, with {0} remaining! KAPOW KAPOW";
-    public string BombDefusedMessage = "PraiseIt PraiseIt The bomb has been defused, with {0} remaining! PraiseIt PraiseIt";
+
+    public string BombDefusedMessage = "PraiseIt PraiseIt The bomb has been defused, with {0} remaining!";
+    public string BombDefusedBonusMessage = " {0} reward points to everyone who helped with this success.";
+    public string BombDefusedFooter = " PraiseIt PraiseIt";
 
     public string BombSoloDefusalMessage = "PraiseIt PraiseIt {0} completed a solo defusal in {1}:{2:00}!";
     public string BombSoloDefusalNewRecordMessage = " It's a new record! (Previous record: {0}:{1:00})";
     public string BombSoloDefusalFooter = " PraiseIt PraiseIt";
+
+    public string BombAbortedMessage = "VoteNay VoteNay The bomb was aborted, with {0} remaining! VoteNay VoteNay";
 
     public string RankTooLow = "Nobody here with that rank!";
 
@@ -49,13 +53,16 @@ public class TwitchPlaySettingsData
 
     public string DoYouEvenPlayBro = "FailFish {0}, do you even play this game?";
 
-    public string TooManyClaimed = "rooCop Sorry, {0} , you may only have {1} claimed modules.";
+    public string TooManyClaimed = "ItsBoshyTime Sorry, {0} , you may only have {1} claimed modules.";
 }
 
 public static class TwitchPlaySettings
 {
-    public static int SettingsVersion = 3;
+    public static int SettingsVersion = 4;
     public static TwitchPlaySettingsData data;
+
+    private static List<string> Players = new List<string>();
+    private static int ClearReward = 0;
 
     public static void WriteDataToFile()
     {
@@ -149,52 +156,36 @@ public static class TwitchPlaySettings
 
     public static void AppendToPlayerLog(string userNickName)
     {
-        if (!CreateSharedDirectory() || string.IsNullOrEmpty(data.TPPlayersLog))
+        if (!Players.Contains(userNickName))
         {
-            return;
+            Players.Add(userNickName);
         }
-        try
+    }
+
+    public static void ClearPlayerLog()
+    {
+        Players.Clear();
+        ClearReward = 0;
+    }
+
+    public static string GiveBonusPoints(Leaderboard leaderboard)
+    {
+        if (ClearReward == 0 || Players.Count == 0)
         {
-            bool newName = true;
-            if (File.Exists(Path.Combine(TwitchPlaySettings.data.TPSharedFolder, TwitchPlaySettings.data.TPPlayersLog)))
-            {
-                foreach (string line in File.ReadAllLines(Path.Combine(TwitchPlaySettings.data.TPSharedFolder, TwitchPlaySettings.data.TPPlayersLog)))
-                {
-                    if (line.Contains(userNickName))
-                        newName = false;
-                }
-            }
-            if (newName == true)
-                using (System.IO.StreamWriter file =
-                    new System.IO.StreamWriter(Path.Combine(TwitchPlaySettings.data.TPSharedFolder, TwitchPlaySettings.data.TPPlayersLog), true))
-                {
-                    file.WriteLine(userNickName);
-                }
+            return data.BombDefusedFooter;
         }
-        catch (Exception ex)
+        ClearReward = Mathf.CeilToInt(((float)ClearReward) / Players.Count);
+        foreach (string player in Players)
         {
-            Debug.LogFormat("TwitchPlaysStrings: Failed to log due to Exception: {0}, Stack Trace: {1}", ex.Message, ex.StackTrace);
+            leaderboard.AddScore(player, ClearReward);
         }
+        ClearPlayerLog();
+        return string.Format(data.BombDefusedBonusMessage, ClearReward) + data.BombDefusedFooter;
     }
 
     public static void WriteRewardData(int moduleCountBonus)
     {
-        if (!CreateSharedDirectory() || string.IsNullOrEmpty(data.TPModScores))
-        {
-            return;
-        }
-        try
-        {
-            using (var sw = new StreamWriter(Path.Combine(TwitchPlaySettings.data.TPSharedFolder, TwitchPlaySettings.data.TPModScores)))
-            {
-                sw.WriteLine(moduleCountBonus);
-                ;
-            }
-        }
-        catch (Exception ex)
-        {
-            Debug.LogFormat("TwitchPlaysStrings: Failed to log due to Exception: {0}, Stack Trace: {1}", ex.Message, ex.StackTrace);
-        }
+        ClearReward = moduleCountBonus;
     }
 
     public static string usersSavePath = "TwitchPlaySettings.json";
