@@ -212,7 +212,6 @@ public abstract class ComponentSolver : ICommandResponder
                     if (int.TryParse(currentString.Substring(14), out awardStrikeCount))
                     {
                         _strikeCount += awardStrikeCount;
-                        int failsafe = 1;
                         AwardStrikes(_currentUserNickName, _currentResponseNotifier, awardStrikeCount);
                         DisableOnStrike = false;
                     }
@@ -358,8 +357,8 @@ public abstract class ComponentSolver : ICommandResponder
 
     private bool OnPass(object _ignore)
     {
-        string componentType = ComponentHandle.componentType.ToString();
-        string headerText = (string)CommonReflectedTypeInfo.ModuleDisplayNameField.Invoke(BombComponent, null);
+        //string componentType = ComponentHandle.componentType.ToString();
+        //string headerText = (string)CommonReflectedTypeInfo.ModuleDisplayNameField.Invoke(BombComponent, null);
 
         int moduleScore = modInfo.moduleScore;
         if (modInfo.moduleScoreIsDynamic)
@@ -442,7 +441,7 @@ public abstract class ComponentSolver : ICommandResponder
     private bool DisableOnStrike;
     private bool OnStrike(object _ignore)
     {
-        string headerText = (string)CommonReflectedTypeInfo.ModuleDisplayNameField.Invoke(BombComponent, null);
+        //string headerText = (string)CommonReflectedTypeInfo.ModuleDisplayNameField.Invoke(BombComponent, null);
         if (DisableOnStrike) return false;
 
         _strikeCount++;
