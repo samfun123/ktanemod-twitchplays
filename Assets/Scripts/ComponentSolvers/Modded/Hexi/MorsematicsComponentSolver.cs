@@ -23,7 +23,7 @@ public class MorsematicsComponentSolver : ComponentSolver
         {
             yield return inputCommand;
             _lightsOn = !_lightsOn;
-            yield return DoInteractionClick(_switch )
+            yield return DoInteractionClick(_switch);
             yield break;
         }
         var letter = Regex.Match(inputCommand, "^((transmit|xmit|trans|tx) )([.-]+)$", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant);
