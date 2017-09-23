@@ -22,10 +22,7 @@ public class WhosOnFirstComponentSolver : ComponentSolver
             if (inputCommand.Equals(buttonText, StringComparison.InvariantCultureIgnoreCase))
             {
                 yield return buttonText;
-
-                DoInteractionStart(button);
-                yield return new WaitForSeconds(0.1f);
-                DoInteractionEnd(button);
+                yield return DoInteractionClick(button);
                 break;
             }
         }

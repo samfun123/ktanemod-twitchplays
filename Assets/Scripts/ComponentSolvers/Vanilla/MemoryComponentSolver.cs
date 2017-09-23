@@ -36,9 +36,7 @@ public class MemoryComponentSolver : ComponentSolver
                 yield return "position";
 
                 MonoBehaviour button = (MonoBehaviour)_buttons.GetValue(buttonNumber - 1);
-                DoInteractionStart(button);
-                yield return new WaitForSeconds(0.1f);
-                DoInteractionEnd(button);
+                yield return DoInteractionClick(button);
             }
             else if (commandParts[0].Equals("label", StringComparison.InvariantCultureIgnoreCase) ||
                     commandParts[0].Equals("lab", StringComparison.InvariantCultureIgnoreCase) ||
@@ -51,10 +49,7 @@ public class MemoryComponentSolver : ComponentSolver
                     if (buttonText.Equals(buttonNumber.ToString()))
                     {
                         yield return "label";
-
-                        DoInteractionStart(button);
-                        yield return new WaitForSeconds(0.1f);
-                        DoInteractionEnd(button);
+                        yield return DoInteractionClick(button);
                         break;
                     }
                 }

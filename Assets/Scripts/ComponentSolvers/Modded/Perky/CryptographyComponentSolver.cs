@@ -35,11 +35,7 @@ public class CryptographyComponentSolver : ComponentSolver
         {
             foreach (var y in x)
             {
-                DoInteractionStart(_buttons[keytext.IndexOf(y)]);
-                yield return new WaitForSeconds(0.1f);
-                DoInteractionEnd(_buttons[keytext.IndexOf(y)]);
-                if (StrikeCount != BeforeStrikes || Solved)
-                    yield break;
+                yield return DoInteractionClick(_buttons[keytext.IndexOf(y)]);
             }
         }
     }

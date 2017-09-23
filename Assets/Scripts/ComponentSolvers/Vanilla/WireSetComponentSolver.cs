@@ -33,9 +33,7 @@ public class WireSetComponentSolver : ComponentSolver
             yield return inputCommand;
 
             MonoBehaviour wireToCut = (MonoBehaviour)_wires[wireIndex];
-            DoInteractionStart(wireToCut);
-            yield return new WaitForSeconds(0.1f);
-            DoInteractionEnd(wireToCut);
+            yield return DoInteractionClick(wireToCut);
         }
     }
 

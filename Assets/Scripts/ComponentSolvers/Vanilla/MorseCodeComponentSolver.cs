@@ -57,18 +57,13 @@ public class MorseCodeComponentSolver : ComponentSolver
                 yield break;
             }
 
-            DoInteractionStart(buttonToShift);
-            yield return new WaitForSeconds(0.1f);
-            DoInteractionEnd(buttonToShift);
+            yield return DoInteractionClick(buttonToShift);
         }
 
         if (CurrentFrequency == targetFrequency)
         {
             yield return "transmit";
-
-            DoInteractionStart(_transmitButton);
-            yield return new WaitForSeconds(0.1f);
-            DoInteractionEnd(_transmitButton);
+            yield return DoInteractionClick(_transmitButton);
         }
     }    
 

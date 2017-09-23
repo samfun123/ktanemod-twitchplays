@@ -44,10 +44,7 @@ public class NeedyKnobComponentSolver : ComponentSolver
                 Canceller.ResetCancel();
                 yield break;
             }
-
-            DoInteractionStart(_pointingKnob);
-            yield return new WaitForSeconds(0.1f);
-            DoInteractionEnd(_pointingKnob);
+            yield return DoInteractionClick(_pointingKnob);
         }
     }
 

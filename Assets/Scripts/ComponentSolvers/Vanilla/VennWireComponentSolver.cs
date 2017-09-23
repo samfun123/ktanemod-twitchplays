@@ -22,8 +22,6 @@ public class VennWireComponentSolver : ComponentSolver
         }
         inputCommand = inputCommand.Substring(4);
 
-        int beforeButtonStrikeCount = StrikeCount;
-
         foreach (Match wireIndexString in Regex.Matches(inputCommand, @"[1-6]"))
         {
             int wireIndex = 0;
@@ -49,16 +47,7 @@ public class VennWireComponentSolver : ComponentSolver
                 }
 
                 MonoBehaviour wire = (MonoBehaviour)_wires.GetValue(wireIndex);
-
-                DoInteractionStart(wire);
-                yield return new WaitForSeconds(0.1f);
-                DoInteractionEnd(wire);
-
-                //Escape the sequence if a part of the given sequence is wrong
-                if (StrikeCount != beforeButtonStrikeCount || Solved)
-                {
-                    break;
-                }
+                yield return DoInteractionClick(wire, string.Format("cutting wire {0}", wireIndexString.Value));
             }
         }
     }

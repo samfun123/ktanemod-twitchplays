@@ -18,10 +18,7 @@ public class ButtonComponentSolver : ComponentSolver
                        inputCommand.Equals("click", StringComparison.InvariantCultureIgnoreCase)))
         {
             yield return "tap";
-
-            DoInteractionStart (_button);
-            yield return new WaitForSeconds(0.1f);
-            DoInteractionEnd(_button);
+            yield return DoInteractionClick(_button);
         }
         else if (!_held && (inputCommand.Equals("hold", StringComparison.InvariantCultureIgnoreCase)))
         {

@@ -20,8 +20,6 @@ public class ForgetMeNotComponentSolver : ComponentSolver
         }
         inputCommand = inputCommand.Substring(6);
 
-        int beforeButtonStrikeCount = StrikeCount;
-
         foreach (char buttonString in inputCommand)
         {
             int val = buttonString - '0';
@@ -37,15 +35,7 @@ public class ForgetMeNotComponentSolver : ComponentSolver
                     yield break;
                 }
 
-                DoInteractionStart(button);
-                yield return new WaitForSeconds(0.1f);
-                DoInteractionEnd(button);
-
-                //Escape the sequence if a part of the given sequence is wrong
-                if (StrikeCount != beforeButtonStrikeCount || Solved)
-                {
-                    yield break;
-                }
+                yield return DoInteractionClick(button);
             }
         }
     }

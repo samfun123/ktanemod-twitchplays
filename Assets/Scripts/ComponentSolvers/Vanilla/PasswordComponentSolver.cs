@@ -16,32 +16,15 @@ public class PasswordComponentSolver : ComponentSolver
 
     protected override IEnumerator RespondToCommandInternal(string inputCommand)
     {
-        if (inputCommand.Equals("claim", StringComparison.InvariantCultureIgnoreCase))
-        {
-            yield break;
-        }
-        else if (inputCommand.Equals("cycle", StringComparison.InvariantCultureIgnoreCase))
-        {
-            IEnumerator spinnerCoroutine = CycleCharacterSpinnerCoroutine(GetCharSpinner(0));
-            while (spinnerCoroutine.MoveNext())
-            {
-                yield return spinnerCoroutine.Current;
-            }
-        }
-        else if (Regex.IsMatch(inputCommand, @"^[a-zA-Z]{5}$"))
-        {
-            yield return "password";
-
-            IEnumerator solveCoroutine = SolveCoroutine(inputCommand);
-            while (solveCoroutine.MoveNext())
-            {
-                yield return solveCoroutine.Current;
-            }
-        }
-        else
+        if (!Regex.IsMatch(inputCommand, @"^[a-zA-Z]{5}$"))
         {
             string[] commandParts = inputCommand.Split(' ');
-            if (commandParts.Length != 2)
+            if (commandParts.Length > 2)
+            {
+                yield break;
+            }
+
+            if (commandParts[0].Equals("claim"))
             {
                 yield break;
             }
@@ -49,7 +32,7 @@ public class PasswordComponentSolver : ComponentSolver
             if (commandParts[0].Equals("cycle", StringComparison.InvariantCultureIgnoreCase))
             {
                 int spinnerIndex = 0;
-                if (!int.TryParse(commandParts[1], out spinnerIndex))
+                if (commandParts.Length == 2 && !int.TryParse(commandParts[1], out spinnerIndex))
                 {
                     yield break;
                 }
@@ -64,6 +47,16 @@ public class PasswordComponentSolver : ComponentSolver
                         yield return spinnerCoroutine.Current;
                     }
                 }
+            }
+        }
+        else
+        {
+            yield return "password";
+
+            IEnumerator solveCoroutine = SolveCoroutine(inputCommand);
+            while (solveCoroutine.MoveNext())
+            {
+                yield return solveCoroutine.Current;
             }
         }
     }
@@ -82,9 +75,7 @@ public class PasswordComponentSolver : ComponentSolver
                 yield break;
             }
 
-            DoInteractionStart(downButton);
-            yield return new WaitForSeconds(0.1f);
-            DoInteractionEnd(downButton);
+            yield return DoInteractionClick(downButton);
             yield return new WaitForSeconds(1.0f);
         }
     }
@@ -124,9 +115,7 @@ public class PasswordComponentSolver : ComponentSolver
         MonoBehaviour downButton = (MonoBehaviour)_downButtonField.GetValue(spinner);
         for (int hitCount = 0; hitCount < 6 && char.ToLower(GetCurrentChar(spinner)) != char.ToLower(desiredCharacter); ++hitCount)
         {
-            DoInteractionStart(downButton);
-            yield return new WaitForSeconds(0.1f);
-            DoInteractionEnd(downButton);
+            yield return DoInteractionClick(downButton);
         }
     }
 

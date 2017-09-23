@@ -60,13 +60,7 @@ public class OrientationCubeComponentSolver : ComponentSolver
                 default: yield break;
             }
 
-            DoInteractionStart(button);
-            yield return new WaitForSeconds(0.1f);
-            DoInteractionEnd(button);
-
-            if (button == _submit)
-                yield break;
-            //Stop pressing buttons following the submit button.
+            yield return DoInteractionClick(button);
         }
     }
 

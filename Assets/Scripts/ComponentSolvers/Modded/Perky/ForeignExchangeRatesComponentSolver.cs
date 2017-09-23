@@ -44,12 +44,13 @@ public class ForeignExchangeRatesComponentSolver : ComponentSolver
 
 
         if (button == null)
+        {
+            yield return "autosolve due to the buttons not being set to expected values";
             yield break;
+        }
 
         yield return "Foreign Exchange Rates Solve Attempt";
-        DoInteractionStart(button);
-        yield return new WaitForSeconds(0.1f);
-        DoInteractionEnd(button);
+        yield return DoInteractionClick(button);
     }
 
     static ForeignExchangeRatesComponentSolver()

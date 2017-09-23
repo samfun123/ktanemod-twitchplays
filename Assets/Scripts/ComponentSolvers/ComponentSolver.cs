@@ -217,6 +217,18 @@ public abstract class ComponentSolver : ICommandResponder
                         DisableOnStrike = false;
                     }
                 }
+                else if (currentString.StartsWith("autosolve", StringComparison.InvariantCultureIgnoreCase))
+                {
+                    HandleModuleException(new Exception(currentString));
+                    break;
+                }
+                else if (currentString.Equals("elevator music", StringComparison.InvariantCultureIgnoreCase))
+                {
+                    if (_musicPlayer == null)
+                    {
+                        _musicPlayer = MusicPlayer.StartRandomMusic();
+                    }
+                }
             }
             else if (currentValue is Quaternion)
             {
@@ -242,6 +254,12 @@ public abstract class ComponentSolver : ICommandResponder
             BombCommander.RotateByLocalQuaternion(Quaternion.identity);
 			BombMessageResponder.moduleCameras.Show();
 		}
+
+        if (_musicPlayer != null)
+        {
+            _musicPlayer.StopMusic();
+            _musicPlayer = null;
+        }
 
         if (parseError)
         {
@@ -300,10 +318,15 @@ public abstract class ComponentSolver : ICommandResponder
         return null;
     }
 
-	protected void DoInteractionClick(MonoBehaviour interactable)
+	protected WaitForSeconds DoInteractionClick(MonoBehaviour interactable, string strikeMessage=null)
 	{
-		DoInteractionStart(interactable);
+	    if (strikeMessage != null)
+	    {
+	        StrikeMessage = strikeMessage;
+	    }
+        DoInteractionStart(interactable);
 		DoInteractionEnd(interactable);
+	    return new WaitForSeconds(0.1f);
 	}
 
 	protected void HandleModuleException(Exception e)
@@ -619,6 +642,8 @@ public abstract class ComponentSolver : ICommandResponder
 
     private ICommandResponseNotifier _currentResponseNotifier = null;
     private string _currentUserNickName = null;
+
+    private MusicPlayer _musicPlayer = null;
     #endregion
 
 

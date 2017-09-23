@@ -35,9 +35,7 @@ public class TurnTheKeyAdvancedComponentSolver : ComponentSolver
                 yield break;
         }
         yield return "Turning the key";
-        DoInteractionStart(Key);
-        yield return new WaitForSeconds(0.1f);
-        DoInteractionEnd(Key);
+        yield return DoInteractionClick(Key);
     }
 
     static TurnTheKeyAdvancedComponentSolver()

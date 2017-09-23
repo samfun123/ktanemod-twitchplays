@@ -21,8 +21,6 @@ public class KeypadComponentSolver : ComponentSolver
         }
         inputCommand = inputCommand.Substring(6);
 
-        int beforeButtonStrikeCount = StrikeCount;
-
         foreach (Match buttonIndexString in Regex.Matches(inputCommand, @"[1-4]"))
         {
             int buttonIndex = 0;
@@ -44,15 +42,7 @@ public class KeypadComponentSolver : ComponentSolver
                 }
 
                 MonoBehaviour button = (MonoBehaviour)_buttons.GetValue(buttonIndex);
-                DoInteractionStart(button);
-                yield return new WaitForSeconds(0.1f);
-                DoInteractionEnd(button);
-
-                //Escape the sequence if a part of the given sequence is wrong
-                if (StrikeCount != beforeButtonStrikeCount || Solved)
-                {
-                    break;
-                }
+                yield return DoInteractionClick(button);
             }
         }
     }

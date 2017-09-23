@@ -23,8 +23,6 @@ public class InvisibleWallsComponentSolver : ComponentSolver
 
         inputCommand = inputCommand.Substring(5);
 
-        int beforeButtonStrikeCount = StrikeCount;
-
         foreach (Match move in Regex.Matches(inputCommand, @"[udlr]", RegexOptions.IgnoreCase))
         {
             MonoBehaviour button = (MonoBehaviour)_buttons[  buttonIndex[ move.Value.ToLowerInvariant() ]  ];
@@ -39,15 +37,7 @@ public class InvisibleWallsComponentSolver : ComponentSolver
                     yield break;
                 }
 
-                DoInteractionStart(button);
-                yield return new WaitForSeconds(0.1f);
-                DoInteractionEnd(button);
-
-                //Escape the sequence if a part of the given sequence is wrong
-                if (StrikeCount != beforeButtonStrikeCount || Solved)
-                {
-                    break;
-                }
+                yield return DoInteractionClick(button);
             }            
         }
     }

@@ -28,9 +28,7 @@ public class PlumbingComponentSolver : ComponentSolver
             inputCommand.Equals("check", StringComparison.InvariantCultureIgnoreCase))
         {
             yield return "Checking for leaks Kappa";
-            DoInteractionStart(_check);
-            yield return new WaitForSeconds(0.1f);
-            DoInteractionEnd(_check);
+            yield return DoInteractionClick(_check);
             yield break;
         }
 
@@ -61,10 +59,7 @@ public class PlumbingComponentSolver : ComponentSolver
                 Canceller.ResetCancel();
                 yield break;
             }
-
-            DoInteractionStart(button);
-            yield return new WaitForSeconds(0.1f);
-            DoInteractionEnd(button);
+            yield return DoInteractionClick(button);
         }
     }
 

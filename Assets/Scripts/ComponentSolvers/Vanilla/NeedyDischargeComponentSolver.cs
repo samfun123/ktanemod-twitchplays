@@ -36,17 +36,12 @@ public class NeedyDischargeComponentSolver : ComponentSolver
 
         if (holdTime > 10.0f)
         {
-            _musicPlayer = MusicPlayer.StartRandomMusic();
+            yield return "elevator music";
         }
 
         DoInteractionStart(_dischargeButton);
         yield return new WaitForSecondsWithCancel(holdTime, Canceller);
         DoInteractionEnd(_dischargeButton);
-
-        if (holdTime > 10.0f)
-        {
-            _musicPlayer.StopMusic();
-        }
     }
 
     static NeedyDischargeComponentSolver()
@@ -59,5 +54,4 @@ public class NeedyDischargeComponentSolver : ComponentSolver
     private static FieldInfo _dischargeButtonField = null;
 
     private MonoBehaviour _dischargeButton = null;
-    private MusicPlayer _musicPlayer = null;
 }

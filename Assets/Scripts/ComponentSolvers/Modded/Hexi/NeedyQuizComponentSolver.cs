@@ -42,12 +42,7 @@ public class NeedyQuizComponentSolver : ComponentSolver
                 yield return "award strikes " + strikeCount;
                 yield break;
             }
-
-            DoInteractionStart(_yesButton);
-            yield return new WaitForSeconds(0.1f);
-            DoInteractionEnd(_yesButton);
-
-            
+            yield return DoInteractionClick(_yesButton);
         }
         else if (inputCommand.Equals("n", StringComparison.InvariantCultureIgnoreCase) ||
                  inputCommand.Equals("no", StringComparison.InvariantCultureIgnoreCase) ||
@@ -55,10 +50,7 @@ public class NeedyQuizComponentSolver : ComponentSolver
                  inputCommand.Equals("press no", StringComparison.InvariantCultureIgnoreCase))
         {
             yield return "no";
-
-            DoInteractionStart(_noButton);
-            yield return new WaitForSeconds(0.1f);
-            DoInteractionEnd(_noButton);
+            yield return DoInteractionClick(_noButton);
         }
     }
 
