@@ -20,8 +20,6 @@ public class ListeningComponentSolver : ComponentSolver
     {
         MonoBehaviour button;
 
-        var beforeStrikes = StrikeCount;
-
         var split = inputCommand.Trim().ToLowerInvariant().Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
         if (split.Length < 2 || split[0] != "press")
             yield break;
@@ -34,7 +32,10 @@ public class ListeningComponentSolver : ComponentSolver
             _buttons[2] = (MonoBehaviour)_starField.GetValue(_bc);
             _buttons[3] = (MonoBehaviour)_ampersandField.GetValue(_bc);
             if (_play == null || _buttons[0] == null || _buttons[1] == null || _buttons[2] == null || _buttons[3] == null)
+            {
+                yield return "autosolve due to buttons not having expected values";
                 yield break;
+            }
         }
 
         var letters = "$#*&";
@@ -56,19 +57,13 @@ public class ListeningComponentSolver : ComponentSolver
             switch (cmd)
             {
                 case "play":
-                    DoInteractionStart(_play);
-                    yield return new WaitForSeconds(0.1f);
-                    DoInteractionEnd(_play);
+                    yield return DoInteractionClick(_play);
                     break;
                 default:
                     foreach (var x in cmd)
                     {
                         button = _buttons[letters.IndexOf(x)];
-                        DoInteractionStart(button);
-                        yield return new WaitForSeconds(0.1f);
-                        DoInteractionEnd(button);
-                        if (StrikeCount != beforeStrikes || Solved)
-                            yield break;
+                        yield return DoInteractionClick(button);
                     }
                     break;
             }
