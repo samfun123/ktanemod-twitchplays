@@ -22,6 +22,8 @@ public class TwitchPlaySettingsData
     public int ClaimCooldownTime = 30;
     public int ModuleClaimLimit = 2;
 
+    public bool AllowSnoozeOnly = false;
+
     public string TPSharedFolder = Path.Combine(Application.persistentDataPath, "TwitchPlaysShared");
     public string TPSolveStrikeLog = "TPLog.txt";
 

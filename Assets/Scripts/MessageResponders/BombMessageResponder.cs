@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Reflection;
 using System.Text.RegularExpressions;
 using UnityEngine;
 
@@ -307,7 +308,8 @@ public class BombMessageResponder : MessageResponder
 
         if (text.Equals("!snooze", StringComparison.InvariantCultureIgnoreCase))
         {
-            CommonReflectedTypeInfo.AlarmClockSnooze.Invoke(AlarmClock, new object[] {0});
+            MethodInfo method = TwitchPlaySettings.data.AllowSnoozeOnly ? CommonReflectedTypeInfo.AlarmClockTurnOff : CommonReflectedTypeInfo.AlarmClockSnooze;
+            method.Invoke(AlarmClock, new object[] {0});
             return;
         }
 

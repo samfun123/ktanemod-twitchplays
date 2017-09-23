@@ -61,6 +61,7 @@ public static class CommonReflectedTypeInfo
 
         AlarmClockType = ReflectionHelper.FindType("Assets.Scripts.Props.AlarmClock");
         AlarmClockSnooze = AlarmClockType.GetMethod("ButtonDown", BindingFlags.Public | BindingFlags.Instance);
+        AlarmClockTurnOff = AlarmClockType.GetMethod("TurnOff", BindingFlags.Public | BindingFlags.Instance);
 
         ResultPageType = ReflectionHelper.FindType("ResultPage");
 
@@ -170,6 +171,12 @@ public static class CommonReflectedTypeInfo
     }
 
     public static MethodInfo AlarmClockSnooze
+    {
+        get;
+        private set;
+    }
+
+    public static MethodInfo AlarmClockTurnOff
     {
         get;
         private set;
