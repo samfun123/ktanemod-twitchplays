@@ -202,7 +202,7 @@ public class TwitchComponentHandle : MonoBehaviour
                 }*/
             }
         }
-        catch (NotSupportedException e)
+        catch (Exception e)
         {
             Debug.Log(e.Message);
             unsupportedPrefab.gameObject.SetActive(true);
