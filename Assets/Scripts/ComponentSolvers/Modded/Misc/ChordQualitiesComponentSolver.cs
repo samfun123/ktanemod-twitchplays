@@ -14,8 +14,7 @@ public class ChordQualitiesComponentSolver : ComponentSolver
 		_selectButton = (KMSelectable) _selectButtonField.GetValue(_component);
 		_submitButton = (KMSelectable) _submitButtonField.GetValue(_component);
 		currentPosition = (int) _positionField.GetValue(_component);
-
-		helpMessage = "Submit a chord using !{0} submit A B C# D";
+	    modInfo = ComponentSolverFactory.GetModuleInfo(GetModuleType());
 	}
 
 	private IEnumerable ToggleNotes(string[] notes)
